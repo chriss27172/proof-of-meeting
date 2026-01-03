@@ -1,0 +1,10 @@
+Connection String z Railway (zapisz w .env):
+
+DATABASE_URL="postgresql://postgres:AQHGIyxOllIvfVDGgoVnWgHbTpOSUjpF@shortline.proxy.rlwy.net:47508/railway"
+
+Password:
+PGPASSWORD=AQHGIyxOllIvfVDGgoVnWgHbTpOSUjpF
+
+PSQL Command:
+psql -h shortline.proxy.rlwy.net -U postgres -p 47508 -d railway
+

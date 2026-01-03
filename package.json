@@ -1,0 +1,49 @@
+{
+  "name": "proof-of-meeting",
+  "version": "0.1.0",
+  "description": "Proof of Meeting - Verify real-world meetings and build reputation using EAS on Base with NFC support",
+  "private": true,
+  "engines": {
+    "node": ">=22.x"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@coinbase/onchainkit": "^0.10.2",
+    "@libsql/client": "^0.14.0",
+    "@prisma/adapter-libsql": "^6.16.3",
+    "@prisma/client": "^6.16.3",
+    "@vercel/og": "^0.6.2",
+    "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
+    "next": "^14.2.18",
+    "qrcode": "^1.5.3",
+    "qrcode.react": "^3.1.0",
+    "html5-qrcode": "^2.3.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "uuid": "^10.0.0",
+    "viem": "^2.21.45",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/uuid": "^10.0.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.18",
+    "postcss": "^8.4.47",
+    "prisma": "^6.16.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
+  }
+}
+

@@ -1,0 +1,120 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // For development: use SQLite with DATABASE_URL="file:./dev.db"
+  // For production: use PostgreSQL (Railway/Neon) with DATABASE_URL="postgresql://..."
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+model User {
+  id            String   @id @default(cuid())
+  fid           Int      @unique // Farcaster ID
+  username      String?  // Username from Farcaster or BaseApp
+  displayName   String?  // Display name
+  avatarUrl     String?  // Profile picture URL
+  walletAddress String?  // Optional wallet address
+  qrCode        String   @unique // Unique QR code for scanning
+  nfcTag        String?  @unique // Optional NFC tag ID
+  
+  // Profile metadata
+  bio           String?  @db.Text
+  location      String?
+  
+  // Reputation metrics (cached for performance)
+  reputationScore Float   @default(0) // Overall reputation score
+  totalMeetings  Int     @default(0) // Total verified meetings
+  totalAttestations Int  @default(0) // Total EAS attestations received
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  meetingsAsInitiator   Meeting[] @relation("Initiator")
+  meetingsAsParticipant Meeting[] @relation("Participant")
+  attestations          Attestation[]
+  reputationsGiven      Reputation[] @relation("RatedBy")
+  reputationsReceived   Reputation[] @relation("RatedUser")
+  
+  @@index([fid])
+  @@index([username])
+  @@index([reputationScore])
+}
+
+model Meeting {
+  id            String   @id @default(cuid())
+  initiatorFid  Int
+  participantFid Int
+  initiator     User     @relation("Initiator", fields: [initiatorFid], references: [fid])
+  participant   User     @relation("Participant", fields: [participantFid], references: [fid])
+  
+  // Meeting details
+  location      String?
+  notes         String?  @db.Text
+  status        String   @default("pending") // pending, confirmed, completed, cancelled
+  
+  // Verification method
+  verificationMethod String @default("qr") // qr, nfc
+  
+  // EAS Attestation
+  attestationId String?  @unique
+  attestation   Attestation?
+  
+  // Transaction hashes
+  attestationTxHash String? @unique
+  nftTxHash         String? @unique
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  confirmedAt   DateTime?
+  completedAt   DateTime?
+  
+  @@unique([initiatorFid, participantFid, createdAt])
+  @@index([initiatorFid])
+  @@index([participantFid])
+  @@index([status])
+}
+
+model Attestation {
+  id            String   @id @default(cuid())
+  uid           String   @unique // EAS attestation UID
+  schema        String   // EAS schema
+  recipient     String   // Wallet address of recipient
+  attester      String   // Wallet address of attester
+  data          String   @db.Text // Attestation data (JSON)
+  txHash        String?  @unique // Transaction hash
+  
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  meetingId     String?  @unique
+  meeting       Meeting? @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([userId])
+  @@index([recipient])
+  @@index([uid])
+}
+
+model Reputation {
+  id            String   @id @default(cuid())
+  userId        String   // User being rated
+  user          User     @relation("RatedUser", fields: [userId], references: [id], onDelete: Cascade)
+  ratedByFid    Int      // FID of user giving the rating
+  ratedBy       User     @relation("RatedBy", fields: [ratedByFid], references: [fid], onDelete: Cascade)
+  
+  score         Int      // 1-5 reputation score
+  meetingId     String?  // Optional reference to meeting
+  notes         String?  @db.Text
+  
+  createdAt     DateTime @default(now())
+  
+  @@unique([userId, ratedByFid])
+  @@index([userId])
+  @@index([ratedByFid])
+}
+
