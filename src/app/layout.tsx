@@ -71,6 +71,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="base:app_id" content="695a94c34d3a403912ed8cf0" />
+      </head>
       <body className={inter.className}>
         <UserProvider>
           <FarcasterSDK />

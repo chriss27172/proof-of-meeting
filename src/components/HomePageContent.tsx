@@ -1,10 +1,25 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import BuyMeCoffee from '@/components/BuyMeCoffee';
 import UserGreeting from '@/components/UserGreeting';
 
 export default function HomePageContent() {
+  useEffect(() => {
+    // Add base:app_id meta tag directly to head
+    let metaTag = document.querySelector('meta[name="base:app_id"]');
+    if (!metaTag) {
+      metaTag = document.createElement('meta');
+      metaTag.setAttribute('name', 'base:app_id');
+      metaTag.setAttribute('content', '695a94c34d3a403912ed8cf0');
+      document.head.appendChild(metaTag);
+    } else {
+      // Update if exists
+      metaTag.setAttribute('content', '695a94c34d3a403912ed8cf0');
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
       <div className="container mx-auto px-4 py-16">
