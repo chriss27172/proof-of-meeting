@@ -80,6 +80,12 @@ export async function POST(req: NextRequest) {
               label: 'Scan QR/NFC',
             },
             {
+              label: 'Generate Code',
+            },
+            {
+              label: 'Enter Code',
+            },
+            {
               label: 'Leaderboard',
             },
           ],
@@ -251,8 +257,63 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Leaderboard
+    // Generate Code
     if (buttonIndex === 5) {
+      // Redirect to generate code endpoint
+      const generateResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/verification-code/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      
+      if (generateResponse.ok) {
+        const result = await generateResponse.text();
+        return new Response(result, {
+          headers: { 'Content-Type': 'text/html' },
+        });
+      }
+      
+      return new Response(
+        getFrameHtmlResponse({
+          buttons: [{ label: 'Back' }],
+          image: {
+            src: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og/error?msg=Failed+to+generate+code`,
+            aspectRatio: '1.91:1',
+          },
+        }),
+        { headers: { 'Content-Type': 'text/html' } }
+      );
+    }
+
+    // Enter Code
+    if (buttonIndex === 6) {
+      return new Response(
+        getFrameHtmlResponse({
+          buttons: [
+            {
+              label: 'Enter Code',
+              action: 'link',
+              target: `${process.env.NEXT_PUBLIC_BASE_URL}/enter-code`,
+            },
+            {
+              label: 'Back',
+            },
+          ],
+          image: {
+            src: `${process.env.NEXT_PUBLIC_BASE_URL}/api/og/enter-code`,
+            aspectRatio: '1.91:1',
+          },
+        }),
+        {
+          headers: {
+            'Content-Type': 'text/html',
+          },
+        }
+      );
+    }
+
+    // Leaderboard
+    if (buttonIndex === 7) {
       return new Response(
         getFrameHtmlResponse({
           buttons: [

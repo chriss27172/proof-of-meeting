@@ -38,6 +38,8 @@ model User {
   attestations          Attestation[]
   reputationsGiven      Reputation[] @relation("RatedBy")
   reputationsReceived   Reputation[] @relation("RatedUser")
+  verificationCodesCreated VerificationCode[] @relation("VerificationCodesCreated")
+  verificationCodesUsed VerificationCode[] @relation("VerificationCodesUsed")
   
   @@index([fid])
   @@index([username])
@@ -57,7 +59,11 @@ model Meeting {
   status        String   @default("pending") // pending, confirmed, completed, cancelled
   
   // Verification method
-  verificationMethod String @default("qr") // qr, nfc
+  verificationMethod String @default("qr") // qr, nfc, code
+  
+  // Verification code reference
+  verificationCodeId String? @unique
+  verificationCode  VerificationCode? @relation(fields: [verificationCodeId], references: [id], onDelete: SetNull)
   
   // EAS Attestation
   attestationId String?  @unique
