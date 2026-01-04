@@ -26,6 +26,7 @@ export async function sendPaymentFee(
 
     const hash = await walletClient.sendTransaction({
       account: walletClient.account,
+      chain: walletClient.chain || base,
       to: PAYMENT_WALLET,
       value: MEETING_FEE,
     });
