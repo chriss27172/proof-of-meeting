@@ -115,6 +115,15 @@ export default function GenerateQRPage() {
                   <li>Both of you will be automatically verified!</li>
                 </ol>
               </div>
+
+              <div className="text-center">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition"
+                >
+                  Generate New QR Code
+                </button>
+              </div>
             </div>
           )}
 
