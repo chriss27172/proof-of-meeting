@@ -46,6 +46,21 @@ export const metadata: Metadata = {
   },
   other: {
     'base:app_id': '695a94c34d3a403912ed8cf0',
+    // Embed metadata for Base App miniapp (required by Base.org documentation)
+    'fc:miniapp': JSON.stringify({
+      version: 'next',
+      imageUrl: `${baseUrl}/api/og/miniapp`,
+      button: {
+        title: 'Launch Proof of Meeting',
+        action: {
+          type: 'launch_miniapp',
+          name: 'Proof of Meeting',
+          url: `${baseUrl}/`,
+          splashImageUrl: `${baseUrl}/api/og`,
+          splashBackgroundColor: '#ffffff',
+        },
+      },
+    }),
   },
 };
 
