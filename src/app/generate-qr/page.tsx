@@ -17,7 +17,7 @@ export default function GenerateQRPage() {
     if (userLoading) return;
 
     if (userError || !user) {
-      setError('Unable to detect your FID. Please use the Frame interface in Farcaster or BaseApp.');
+      setError('Unable to detect your FID. Please make sure you are using the app from Farcaster or BaseApp.');
       setLoading(false);
       return;
     }
