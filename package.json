@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@coinbase/onchainkit": "^0.10.2",
-    "@libsql/client": "^0.14.0",
+    "@libsql/client": "^0.15.0",
     "@prisma/adapter-libsql": "^6.16.3",
     "@prisma/client": "^6.16.3",
     "@vercel/og": "^0.6.2",
