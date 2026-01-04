@@ -188,12 +188,6 @@ export default function MintPage() {
         ? (meeting.participant.walletAddress || '0x0')
         : (meeting.initiator.walletAddress || '0x0');
 
-      // Get schema UID from API (it's in .env on server)
-      const schemaUID = process.env.NEXT_PUBLIC_EAS_SCHEMA_UID as `0x${string}`;
-      if (!schemaUID) {
-        throw new Error('EAS_SCHEMA_UID not configured. Please set NEXT_PUBLIC_EAS_SCHEMA_UID in .env');
-      }
-
       // Call EAS contract directly from frontend
       const hash = await walletClient.writeContract({
         address: EAS_CONTRACT_ADDRESS,
