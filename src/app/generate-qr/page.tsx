@@ -17,20 +17,33 @@ export default function GenerateQRPage() {
   const [showManualInput, setShowManualInput] = useState(false);
 
   useEffect(() => {
-    if (userLoading) return;
-
-    if (userError) {
-      // If there's an error, allow manual input
-      setShowManualInput(true);
-      setLoading(false);
+    if (userLoading) {
+      setLoading(true);
       return;
     }
 
+    // Jeśli użytkownik jest wykryty, użyj jego danych
     if (user && user.fid) {
       // User data available from SDK
       createOrGetUserFromData(user.fid, user.username);
-    } else {
-      // No user data, allow manual input
+      return;
+    }
+
+    // Jeśli nie ma błędu i nie ma użytkownika, czekaj jeszcze chwilę
+    // (SDK może potrzebować więcej czasu na załadowanie w miniapp)
+    if (!userError && !user) {
+      const timeout = setTimeout(() => {
+        // Po 5 sekundach, jeśli nadal nie ma użytkownika, pozwól na ręczne wprowadzenie
+        // (ale tylko jeśli nie jesteśmy w miniapp - w miniapp powinniśmy zawsze mieć użytkownika)
+        setShowManualInput(true);
+        setLoading(false);
+      }, 5000);
+
+      return () => clearTimeout(timeout);
+    }
+
+    // Jeśli jest błąd lub użytkownik nie został wykryty, pozwól na ręczne wprowadzenie
+    if (userError || (!user && !userLoading)) {
       setShowManualInput(true);
       setLoading(false);
     }
