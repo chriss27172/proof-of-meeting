@@ -85,6 +85,14 @@ export default function GenerateQRPage() {
           {error && (
             <div className="bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-6">
               <p className="text-sm">{error}</p>
+              {error.includes('wallet') && (
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded transition"
+                >
+                  Try Again
+                </button>
+              )}
             </div>
           )}
 
@@ -128,6 +136,14 @@ export default function GenerateQRPage() {
           )}
 
           <div className="text-center space-y-4 mt-6">
+            {!qrData && !loading && (
+              <button
+                onClick={() => window.location.reload()}
+                className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition mb-4"
+              >
+                Generate QR Code
+              </button>
+            )}
             <Link
               href="/scan"
               className="block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition"

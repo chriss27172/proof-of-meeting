@@ -21,42 +21,38 @@ export function useFarcasterUser() {
       try {
         // Dynamically import SDK to avoid SSR issues
         const { sdk } = await import('@farcaster/miniapp-sdk');
-        
-        // Get user context from Farcaster SDK
-        // sdk.context is a synchronous getter
-        const context = sdk.context;
-        
-        if (context?.user) {
-          setUser({
-            fid: context.user.fid,
-            username: context.user.username,
-            displayName: context.user.displayName,
-          });
-          setLoading(false);
-        } else {
-          // Context might not be ready immediately, wait a bit
-          const checkContext = () => {
-            const delayedContext = sdk.context;
-            if (delayedContext?.user) {
-              setUser({
-                fid: delayedContext.user.fid,
-                username: delayedContext.user.username,
-                displayName: delayedContext.user.displayName,
-              });
-              setLoading(false);
-            } else {
-              // If still no user after delay, it's not available
-              setError('User data not available');
-              setLoading(false);
-            }
-          };
-          
-          // Try after a short delay
-          setTimeout(checkContext, 200);
-        }
+
+        // Try multiple times to get user context
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        const checkContext = () => {
+          attempts++;
+          const context = sdk.context;
+
+          if (context?.user) {
+            setUser({
+              fid: context.user.fid,
+              username: context.user.username,
+              displayName: context.user.displayName,
+            });
+            setLoading(false);
+          } else if (attempts < maxAttempts) {
+            // Try again after a short delay
+            setTimeout(checkContext, 100);
+          } else {
+            // If still no user after all attempts, try to connect wallet
+            console.log('User context not available, trying to connect wallet...');
+            setError('Please connect your wallet in Farcaster to continue');
+            setLoading(false);
+          }
+        };
+
+        // Start checking context
+        checkContext();
       } catch (err) {
         // SDK might not be available if not running in Farcaster miniapp context
-        console.log('Farcaster SDK not available (running outside Farcaster context)');
+        console.log('Farcaster SDK not available (running outside Farcaster context)', err);
         setError('Not running in Farcaster miniapp context');
         setLoading(false);
       }
