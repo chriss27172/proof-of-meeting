@@ -44,6 +44,9 @@ export const metadata: Metadata = {
     description: "Verify real-world meetings and build reputation using EAS on Base with NFC support",
     images: [`${baseUrl}/api/og/miniapp`],
   },
+  other: {
+    'base:app_id': '695a94c34d3a403912ed8cf0',
+  },
 };
 
 export default function RootLayout({
