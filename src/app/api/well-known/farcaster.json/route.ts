@@ -5,14 +5,24 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proof-of-meeting.vercel.app';
   
+  // Account Association - WYMAGANE do weryfikacji własności domeny
+  // Musi być wygenerowane przez Base Build Account Association Tool
+  // https://build.base.org/tools/account-association
+  // 
+  // WAŻNE: Użyj prawdziwych credentials wygenerowanych przez Base Build
+  // Domyślne wartości są tylko dla developmentu i NIE będą działać w produkcji
+  const accountAssociationHeader = process.env.FARCASTER_ACCOUNT_ASSOCIATION_HEADER;
+  const accountAssociationPayload = process.env.FARCASTER_ACCOUNT_ASSOCIATION_PAYLOAD;
+  const accountAssociationSignature = process.env.FARCASTER_ACCOUNT_ASSOCIATION_SIGNATURE;
+  
   // Farcaster/BaseApp miniapp manifest - zgodny z wymaganiami Farcaster i BaseApp
   const farcasterManifest: any = {
     // Account Association - wymagane do weryfikacji własności domeny
     // Pozwala Farcaster rozpoznać aplikację jako należącą do użytkownika
     accountAssociation: {
-      header: process.env.FARCASTER_ACCOUNT_ASSOCIATION_HEADER || 'eyJmaWQiOjE5MjQ5MCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweGE2OTQ3MGE5YjY1NTcyOTREY2U0ODU3OTZCODBhNzJkNTI2ZGRjOEQifQ',
-      payload: process.env.FARCASTER_ACCOUNT_ASSOCIATION_PAYLOAD || 'eyJkb21haW4iOiJwcm9vZi1vZi1tZWV0aW5nLnZlcmNlbC5hcHAifQ',
-      signature: process.env.FARCASTER_ACCOUNT_ASSOCIATION_SIGNATURE || 'YrUzpVmsR9NkZl2toXSsj/ZncfhBEWu4rNau9dQB8St8HYyGfu/j7B2di/0oxXYGms1rR+Sg6+cJVVf6gmMgWxs=',
+      header: accountAssociationHeader || 'eyJmaWQiOjE5MjQ5MCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweGE2OTQ3MGE5YjY1NTcyOTREY2U0ODU3OTZCODBhNzJkNTI2ZGRjOEQifQ',
+      payload: accountAssociationPayload || 'eyJkb21haW4iOiJwcm9vZi1vZi1tZWV0aW5nLnZlcmNlbC5hcHAifQ',
+      signature: accountAssociationSignature || 'YrUzpVmsR9NkZl2toXSsj/ZncfhBEWu4rNau9dQB8St8HYyGfu/j7B2di/0oxXYGms1rR+Sg6+cJVVf6gmMgWxs=',
     },
     
     // Miniapp configuration - zgodne z wymaganiami Farcaster/BaseApp
