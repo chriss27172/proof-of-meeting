@@ -32,8 +32,12 @@ export async function GET() {
       description: 'Verify real-world meetings and build reputation using EAS on Base with NFC support. Connect with others from Farcaster and BaseApp.',
       iconUrl: `${baseUrl}/api/icon/512`,
       homeUrl: `${baseUrl}/`,
+      imageUrl: `${baseUrl}/api/og/miniapp`, // Promocyjny obrazek dla miniapp
+      buttonTitle: 'Open App', // Tytuł przycisku do otwarcia miniapp
       splashImageUrl: `${baseUrl}/api/og`,
       splashBackgroundColor: '#ffffff',
+      webhookUrl: `${baseUrl}/api/webhook`, // Webhook URL dla powiadomień (opcjonalne)
+      subtitle: 'Verify meetings & build rep', // Krótki podtytuł
       primaryCategory: 'social',
       tags: ['social', 'meetings', 'reputation', 'verification', 'nfc'], // Max 5 tags
       heroImageUrl: `${baseUrl}/api/og`,
