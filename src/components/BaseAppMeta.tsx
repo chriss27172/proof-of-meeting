@@ -8,8 +8,8 @@ const APP_ID = '695a94c34d3a403912ed8cf0';
  * Component to add base:app_id meta tag directly to document head
  * This ensures the meta tag is available for Base App verification
  * 
- * Base App may check for the meta tag before JavaScript loads,
- * so we add it immediately when component mounts
+ * Base App requires the metatag in the <head> element for ownership verification.
+ * This component adds it both via inline script (immediate) and useEffect (after React loads).
  */
 export default function BaseAppMeta() {
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function BaseAppMeta() {
         metaTagByName.setAttribute('content', APP_ID);
         // Insert at the beginning of head for early detection
         document.head.insertBefore(metaTagByName, document.head.firstChild);
-        console.log('✅ base:app_id meta tag (name) added to head');
+        console.log('✅ base:app_id meta tag (name) added to head via useEffect');
       } else {
         metaTagByName.setAttribute('content', APP_ID);
         console.log('✅ base:app_id meta tag (name) already exists, updated');
@@ -37,7 +37,7 @@ export default function BaseAppMeta() {
         metaTagByProperty.setAttribute('property', 'base:app_id');
         metaTagByProperty.setAttribute('content', APP_ID);
         document.head.appendChild(metaTagByProperty);
-        console.log('✅ base:app_id meta tag (property) added to head');
+        console.log('✅ base:app_id meta tag (property) added to head via useEffect');
       } else {
         metaTagByProperty.setAttribute('content', APP_ID);
         console.log('✅ base:app_id meta tag (property) already exists, updated');
@@ -56,21 +56,34 @@ export default function BaseAppMeta() {
     }
   }, []);
 
-  // Also add via dangerouslySetInnerHTML as a fallback for immediate rendering
-  // This ensures the tag is in the HTML even before JavaScript executes
+  // Add via inline script that executes immediately (before React/JavaScript fully loads)
+  // This ensures the tag is in the HTML <head> even before JavaScript executes
+  // This is critical for Base App verification which may check the tag early
   return (
     <script
       dangerouslySetInnerHTML={{
         __html: `
           (function() {
-            if (typeof document !== 'undefined') {
+            if (typeof document !== 'undefined' && document.head) {
               const appId = '${APP_ID}';
+              // Check if meta tag already exists
               let meta = document.querySelector('meta[name="base:app_id"]');
               if (!meta) {
+                // Create and add meta tag to head
                 meta = document.createElement('meta');
                 meta.setAttribute('name', 'base:app_id');
                 meta.setAttribute('content', appId);
-                document.head.insertBefore(meta, document.head.firstChild);
+                // Insert at the beginning of head for earliest possible detection
+                if (document.head.firstChild) {
+                  document.head.insertBefore(meta, document.head.firstChild);
+                } else {
+                  document.head.appendChild(meta);
+                }
+                console.log('✅ base:app_id meta tag added to <head> via inline script');
+              } else {
+                // Update content if tag exists
+                meta.setAttribute('content', appId);
+                console.log('✅ base:app_id meta tag already exists in <head>, content updated');
               }
             }
           })();

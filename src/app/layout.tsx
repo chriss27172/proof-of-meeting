@@ -46,6 +46,8 @@ export const metadata: Metadata = {
     images: [`${baseUrl}/api/og/miniapp`],
   },
   other: {
+    // Base App ownership verification metatag
+    // This is rendered as: <meta name="base:app_id" content="695a94c34d3a403912ed8cf0" /> in the <head> element
     'base:app_id': '695a94c34d3a403912ed8cf0',
     // Embed metadata for Base App miniapp (required by Base.org documentation)
     'fc:miniapp': JSON.stringify({

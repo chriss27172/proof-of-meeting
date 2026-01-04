@@ -54,6 +54,8 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [`${baseUrl}/api/og/miniapp`],
     },
     other: {
+      // Base App ownership verification metatag
+      // This is rendered as: <meta name="base:app_id" content="695a94c34d3a403912ed8cf0" /> in the <head> element
       'base:app_id': '695a94c34d3a403912ed8cf0',
       ...frameMetadata,
     },
