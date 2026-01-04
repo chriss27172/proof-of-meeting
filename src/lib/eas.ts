@@ -110,7 +110,7 @@ export async function createAttestation(
   walletClient: WalletClient,
   recipient: `0x${string}`,
   data: AttestationData,
-  publicClient: PublicClient = baseClient
+  publicClient: typeof baseClient = baseClient
 ): Promise<string> {
   try {
     if (!walletClient.account) {
