@@ -8,21 +8,11 @@ export async function GET() {
   // Farcaster/BaseApp miniapp manifest - zgodny z wymaganiami Farcaster i BaseApp
   const farcasterManifest: any = {
     // Account Association - wymagane do weryfikacji własności domeny
-    // INSTRUKCJA: Aby wygenerować te pola:
-    // 1. Przejdź do https://build.base.org/preview
-    // 2. Zaloguj się na swoje konto Base
-    // 3. Przejdź do sekcji Preview → Account Association
-    // 4. Wprowadź URL aplikacji: https://proof-of-meeting.vercel.app
-    // 5. Kliknij "Submit" i podpisz manifest za pomocą portfela
-    // 6. Skopiuj wygenerowane wartości header, payload, signature
-    // 7. Dodaj je jako zmienne środowiskowe na Vercel:
-    //    - FARCASTER_ACCOUNT_ASSOCIATION_HEADER
-    //    - FARCASTER_ACCOUNT_ASSOCIATION_PAYLOAD
-    //    - FARCASTER_ACCOUNT_ASSOCIATION_SIGNATURE
+    // Pozwala Farcaster rozpoznać aplikację jako należącą do użytkownika
     accountAssociation: {
-      header: process.env.FARCASTER_ACCOUNT_ASSOCIATION_HEADER || '',
-      payload: process.env.FARCASTER_ACCOUNT_ASSOCIATION_PAYLOAD || '',
-      signature: process.env.FARCASTER_ACCOUNT_ASSOCIATION_SIGNATURE || '',
+      header: process.env.FARCASTER_ACCOUNT_ASSOCIATION_HEADER || 'eyJmaWQiOjE5MjQ5MCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweGE2OTQ3MGE5YjY1NTcyOTREY2U0ODU3OTZCODBhNzJkNTI2ZGRjOEQifQ',
+      payload: process.env.FARCASTER_ACCOUNT_ASSOCIATION_PAYLOAD || 'eyJkb21haW4iOiJwcm9vZi1vZi1tZWV0aW5nLnZlcmNlbC5hcHAifQ',
+      signature: process.env.FARCASTER_ACCOUNT_ASSOCIATION_SIGNATURE || 'YrUzpVmsR9NkZl2toXSsj/ZncfhBEWu4rNau9dQB8St8HYyGfu/j7B2di/0oxXYGms1rR+Sg6+cJVVf6gmMgWxs=',
     },
     
     // Miniapp configuration - zgodne z wymaganiami Farcaster/BaseApp
