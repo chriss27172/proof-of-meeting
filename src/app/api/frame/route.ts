@@ -36,9 +36,8 @@ export async function POST(req: NextRequest) {
     const buttonIndex = frameData.message.button;
     
     // Try to get username from frame data (if available)
-    const username = frameData.message.interactor?.username || 
-                     frameData.message.cast?.author?.username || 
-                     null;
+    // Note: interactor doesn't have username property, try cast author instead
+    const username = frameData.message.cast?.author?.username || null;
 
     // Main menu
     if (!buttonIndex) {
