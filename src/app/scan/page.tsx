@@ -71,30 +71,54 @@ export default function ScanPage() {
   };
 
   const startQRScanner = async () => {
-    if (!scannerContainerRef.current) return;
-
-    try {
-      const html5QrCode = new Html5Qrcode('qr-reader');
-      qrCodeRef.current = html5QrCode;
-
-      await html5QrCode.start(
-        { facingMode: 'environment' }, // Use back camera
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-        },
-        (decodedText) => {
-          handleScan(decodedText);
-        },
-        (errorMessage) => {
-          // Ignore scanning errors, they're normal
+    // Wait for DOM element to be available
+    return new Promise<void>((resolve, reject) => {
+      const checkElement = () => {
+        const element = document.getElementById('qr-reader');
+        if (!element) {
+          setTimeout(checkElement, 100);
+          return;
         }
-      );
-    } catch (err) {
-      console.error('Error starting QR scanner:', err);
-      setError('Failed to start camera. Please check permissions.');
-      setScanning(false);
-    }
+        
+        // Initialize scanner once element is available
+        (async () => {
+          try {
+            // Stop any existing scanner
+            if (qrCodeRef.current) {
+              await stopQRScanner();
+            }
+
+            const html5QrCode = new Html5Qrcode('qr-reader');
+            qrCodeRef.current = html5QrCode;
+
+            await html5QrCode.start(
+              { facingMode: 'environment' }, // Use back camera
+              {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+              },
+              (decodedText) => {
+                handleScan(decodedText);
+              },
+              (errorMessage) => {
+                // Ignore scanning errors, they're normal during scanning
+              }
+            );
+            setScanning(true);
+            resolve();
+          } catch (err: any) {
+            console.error('Error starting QR scanner:', err);
+            setError(`Failed to start camera: ${err.message || 'Please check permissions and try again.'}`);
+            setScanning(false);
+            qrCodeRef.current = null;
+            reject(err);
+          }
+        })();
+      };
+      
+      checkElement();
+    });
   };
 
   const stopQRScanner = async () => {
@@ -110,6 +134,15 @@ export default function ScanPage() {
   };
 
   useEffect(() => {
+    // Auto-start QR scanner when page loads and method is QR
+    if (method === 'qr' && !scanning && !qrCodeRef.current) {
+      setScanning(true);
+      startQRScanner().catch((err) => {
+        console.error('Failed to auto-start scanner:', err);
+        setScanning(false);
+      });
+    }
+
     // Cleanup on unmount
     return () => {
       stopQRScanner();
@@ -120,6 +153,15 @@ export default function ScanPage() {
     // Stop scanner when switching methods
     if (!scanning && qrCodeRef.current) {
       stopQRScanner();
+    }
+    
+    // Auto-start scanner when switching to QR
+    if (method === 'qr' && !scanning && !qrCodeRef.current) {
+      setScanning(true);
+      startQRScanner().catch((err) => {
+        console.error('Failed to start scanner:', err);
+        setScanning(false);
+      });
     }
   }, [method, scanning]);
 
@@ -158,21 +200,47 @@ export default function ScanPage() {
         )}
 
         <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-8 mb-6 text-center">
-          {scanning && method === 'qr' ? (
+          {method === 'qr' ? (
             <div>
-              <div id="qr-reader" className="w-full max-w-md mx-auto mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Point your camera at the QR code
-              </p>
-              <button
-                onClick={async () => {
-                  await stopQRScanner();
-                  setScanning(false);
-                }}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition"
-              >
-                Stop Scanner
-              </button>
+              {/* Always render QR reader container */}
+              <div 
+                id="qr-reader" 
+                className="w-full max-w-md mx-auto mb-4"
+                style={{ minHeight: '300px', display: scanning ? 'block' : 'none' }}
+              ></div>
+              {scanning ? (
+                <>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Point your camera at the QR code
+                  </p>
+                  <button
+                    onClick={async () => {
+                      await stopQRScanner();
+                      setScanning(false);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition"
+                  >
+                    Stop Scanner
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="text-6xl mb-4">📷</div>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Click to start scanning QR code
+                  </p>
+                  <button
+                    onClick={async () => {
+                      setScanning(true);
+                      setError(null);
+                      await startQRScanner();
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition"
+                  >
+                    Start Scanner
+                  </button>
+                </>
+              )}
             </div>
           ) : scanning && method === 'nfc' ? (
             <div>
@@ -191,25 +259,19 @@ export default function ScanPage() {
             </div>
           ) : (
             <div>
-              <div className="text-6xl mb-4">{method === 'nfc' ? '📱' : '📷'}</div>
+              <div className="text-6xl mb-4">📱</div>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {method === 'nfc' 
-                  ? 'Click to start NFC reading'
-                  : 'Click to start scanning'}
+                Click to start NFC reading
               </p>
               <button
                 onClick={async () => {
                   setScanning(true);
                   setError(null);
-                  if (method === 'nfc') {
-                    handleNFCRead();
-                  } else {
-                    await startQRScanner();
-                  }
+                  handleNFCRead();
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition"
               >
-                Start {method === 'nfc' ? 'NFC Reader' : 'Scanner'}
+                Start NFC Reader
               </button>
             </div>
           )}
