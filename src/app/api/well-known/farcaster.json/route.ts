@@ -27,11 +27,11 @@ export async function GET() {
       splashImageUrl: `${baseUrl}/api/og`,
       splashBackgroundColor: '#ffffff',
       webhookUrl: `${baseUrl}/api/webhook`, // Webhook URL dla powiadomień (opcjonalne)
-      subtitle: 'Verify meetings & build rep', // Krótki podtytuł
+      subtitle: 'Verify meetings and build rep', // Krótki podtytuł, no special characters
       primaryCategory: 'social',
       tags: ['social', 'meetings', 'reputation', 'verification', 'nfc'], // Max 5 tags
       heroImageUrl: `${baseUrl}/api/og`,
-      tagline: 'Verify meetings & build rep', // Max 30 chars
+      tagline: 'Verify meetings and build rep', // Max 30 chars, no special characters
       ogTitle: 'Proof of Meeting', // Max 30 chars
       ogDescription: 'Verify real-world meetings and build reputation using EAS on Base with NFC support',
       ogImageUrl: `${baseUrl}/api/og`,
