@@ -12,56 +12,83 @@ export default function GenerateQRPage() {
   const [qrData, setQrData] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [manualFid, setManualFid] = useState('');
+  const [manualUsername, setManualUsername] = useState('');
+  const [showManualInput, setShowManualInput] = useState(false);
 
   useEffect(() => {
     if (userLoading) return;
 
-    if (userError || !user) {
-      setError('Unable to detect your FID. Please make sure you are using the app from Farcaster or BaseApp.');
+    if (userError) {
+      // If there's an error, allow manual input
+      setShowManualInput(true);
       setLoading(false);
       return;
     }
 
-    // Create or get user in database
-    const createOrGetUser = async () => {
-      try {
-        const response = await fetch('/api/user/me', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fid: user.fid, username: user.username }),
-        });
-
-        const data = await response.json();
-        
-        if (data.error) {
-          setError(data.error);
-          setLoading(false);
-          return;
-        }
-
-        // Get QR code from user data or generate new one
-        if (data.qrCode) {
-          setQrData(data.qrCode);
-        } else {
-          // Fallback: generate QR code data client-side
-          const qrCodeData = {
-            fid: user.fid,
-            username: user.username,
-            qrId: crypto.randomUUID(),
-            timestamp: Date.now(),
-          };
-          setQrData(JSON.stringify(qrCodeData));
-        }
-        setLoading(false);
-      } catch (err) {
-        console.error('Error creating/getting user:', err);
-        setError('Failed to generate QR code');
-        setLoading(false);
-      }
-    };
-
-    createOrGetUser();
+    if (user && user.fid) {
+      // User data available from SDK
+      createOrGetUserFromData(user.fid, user.username);
+    } else {
+      // No user data, allow manual input
+      setShowManualInput(true);
+      setLoading(false);
+    }
   }, [user, userLoading, userError]);
+
+  const createOrGetUserFromData = async (fid: number, username?: string) => {
+    try {
+      const response = await fetch('/api/user/me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fid, username }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        setError(data.error);
+        setLoading(false);
+        return;
+      }
+
+      // Get QR code from user data or generate new one
+      if (data.qrCode) {
+        setQrData(data.qrCode);
+      } else {
+        // Fallback: generate QR code data client-side
+        const qrCodeData = {
+          fid,
+          username,
+          qrId: crypto.randomUUID(),
+          timestamp: Date.now(),
+        };
+        setQrData(JSON.stringify(qrCodeData));
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error('Error creating/getting user:', err);
+      setError('Failed to generate QR code');
+      setLoading(false);
+    }
+  };
+
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const fid = parseInt(manualFid);
+
+    if (!fid || isNaN(fid)) {
+      setError('Please enter a valid FID');
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+    setShowManualInput(false);
+
+    createOrGetUserFromData(fid, manualUsername.trim() || undefined);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
@@ -82,17 +109,74 @@ export default function GenerateQRPage() {
             </div>
           )}
 
-          {error && (
+          {error && !showManualInput && (
             <div className="bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-6">
               <p className="text-sm">{error}</p>
-              {error.includes('wallet') && (
+              <div className="mt-3 space-y-2">
                 <button
-                  onClick={() => window.location.reload()}
-                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded transition"
+                  onClick={() => setShowManualInput(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded transition mr-2"
                 >
-                  Try Again
+                  Enter Manually
                 </button>
-              )}
+                {error.includes('wallet') && (
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-bold py-2 px-4 rounded transition"
+                  >
+                    Try Again
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {showManualInput && (
+            <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-bold mb-4">Enter Your Farcaster ID</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Since automatic detection failed, please enter your FID manually.
+                You can find your FID on your Farcaster profile or in your settings.
+              </p>
+              <form onSubmit={handleManualSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">FID (Farcaster ID) *</label>
+                  <input
+                    type="number"
+                    value={manualFid}
+                    onChange={(e) => setManualFid(e.target.value)}
+                    placeholder="12345"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Username (optional)</label>
+                  <input
+                    type="text"
+                    value={manualUsername}
+                    onChange={(e) => setManualUsername(e.target.value)}
+                    placeholder="@username"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded transition"
+                  >
+                    {loading ? 'Generating...' : 'Generate QR Code'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowManualInput(false)}
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 
@@ -136,13 +220,21 @@ export default function GenerateQRPage() {
           )}
 
           <div className="text-center space-y-4 mt-6">
-            {!qrData && !loading && (
-              <button
-                onClick={() => window.location.reload()}
-                className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition mb-4"
-              >
-                Generate QR Code
-              </button>
+            {!qrData && !loading && !showManualInput && (
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowManualInput(true)}
+                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition"
+                >
+                  Enter FID Manually
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="block w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition"
+                >
+                  Try Auto-Detection Again
+                </button>
+              </div>
             )}
             <Link
               href="/scan"

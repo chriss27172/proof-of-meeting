@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 export interface FarcasterUser {
-  fid: number;
+  fid?: number;
   username?: string;
   displayName?: string;
 }
@@ -41,9 +41,9 @@ export function useFarcasterUser() {
             // Try again after a short delay
             setTimeout(checkContext, 100);
           } else {
-            // If still no user after all attempts, try to connect wallet
-            console.log('User context not available, trying to connect wallet...');
-            setError('Please connect your wallet in Farcaster to continue');
+            // If still no user after all attempts, allow manual input
+            console.log('User context not available, allowing manual input');
+            setUser(null); // Allow manual input
             setLoading(false);
           }
         };
