@@ -55,8 +55,8 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [`${baseUrl}/api/og/miniapp`],
     },
     other: {
-      ...frameMetadata,
       'base:app_id': '695a94c34d3a403912ed8cf0',
+      ...frameMetadata,
     },
   };
 }
