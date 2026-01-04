@@ -4,7 +4,7 @@
   "description": "Proof of Meeting - Verify real-world meetings and build reputation using EAS on Base with NFC support",
   "private": true,
   "engines": {
-    "node": ">=22.x"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "next dev",
