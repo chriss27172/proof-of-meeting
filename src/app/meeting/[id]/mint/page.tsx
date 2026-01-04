@@ -88,6 +88,31 @@ export default function MintPage() {
 
   const connectWallet = async () => {
     try {
+      // Check if we're in Farcaster miniapp context
+      const isFarcasterMiniApp = typeof window !== 'undefined' &&
+        (window as any).farcaster ||
+        (typeof window !== 'undefined' && (window as any).parent !== window && (window as any).parent.farcaster);
+
+      if (isFarcasterMiniApp) {
+        // Use Farcaster integrated wallet
+        try {
+          const { sdk } = await import('@farcaster/miniapp-sdk');
+
+          // Check if wallet actions are available in Farcaster SDK
+          console.log('Detected Farcaster miniapp context');
+
+          // For now, inform user about wallet requirement
+          // TODO: Implement full Farcaster wallet integration when SDK supports it
+          setError('To mint attestations, please use this app in a regular browser with MetaMask or Coinbase Wallet. Farcaster wallet integration is coming soon.');
+          return;
+        } catch (farcasterError) {
+          console.log('Farcaster wallet not available:', farcasterError);
+          setError('Farcaster wallet not available. Please use a regular wallet like MetaMask.');
+          return;
+        }
+      }
+
+      // Fallback to external wallet (MetaMask, etc.)
       if (!window.ethereum) {
         setError('Please install a wallet (MetaMask, Coinbase Wallet, etc.)');
         return;
@@ -124,6 +149,7 @@ export default function MintPage() {
         }
       }
     } catch (err: any) {
+      console.error('Wallet connection error:', err);
       setError(err.message || 'Failed to connect wallet');
     }
   };

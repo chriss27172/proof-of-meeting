@@ -49,14 +49,14 @@ export function useFarcasterUser() {
         // W Farcaster miniapp użytkownik już jest zalogowany
         // Powinniśmy móc pobrać jego dane bezpośrednio z kontekstu
         let attempts = 0;
-        const maxAttempts = 20;
+        const maxAttempts = 25;
 
         const checkContext = () => {
           attempts++;
           const context = sdk.context;
           console.log(`Context check ${attempts}:`, context);
 
-          if (context?.user) {
+          if (context?.user && context.user.fid) {
             console.log('User found in Farcaster context:', context.user);
             setUser({
               fid: context.user.fid,
@@ -66,18 +66,18 @@ export function useFarcasterUser() {
             setLoading(false);
           } else if (attempts < maxAttempts) {
             // Kontynuuj sprawdzanie kontekstu
-            setTimeout(checkContext, 200);
+            setTimeout(checkContext, 150);
           } else {
             console.log('No user found in Farcaster context after all attempts');
             // W miniapp kontekście zawsze powinniśmy mieć dostęp do użytkownika
             // Jeśli nie mamy, to znaczy że coś jest nie tak z SDK lub kontekstem
-            setError('Unable to access Farcaster user data. Please make sure you\'re using the app from Farcaster.');
+            setError('Unable to access Farcaster user data. Please make sure you\'re using the app from within Farcaster.');
             setUser(null);
             setLoading(false);
           }
         };
 
-        // Rozpocznij sprawdzanie kontekstu
+        // Rozpocznij sprawdzanie kontekstu od razu
         checkContext();
 
       } catch (err) {
