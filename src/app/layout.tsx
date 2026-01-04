@@ -12,8 +12,14 @@ export const metadata: Metadata = {
   description: "Verify real-world meetings and build reputation using EAS on Base with NFC support",
   manifest: `${baseUrl}/manifest.json`,
   icons: {
-    icon: `${baseUrl}/icon.png`,
-    apple: `${baseUrl}/icon.png`,
+    icon: [
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+      { url: '/api/icon/192', sizes: '192x192', type: 'image/png' },
+      { url: '/api/icon/512', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
   openGraph: {
     title: "Proof of Meeting - Verify Real-world Meetings",
