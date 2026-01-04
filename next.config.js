@@ -31,6 +31,15 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@libsql/client', '@prisma/adapter-libsql'],
   },
+  // Rewrites for .well-known paths (required for Farcaster/BaseApp miniapp)
+  async rewrites() {
+    return [
+      {
+        source: '/.well-known/farcaster.json',
+        destination: '/api/well-known/farcaster.json',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
