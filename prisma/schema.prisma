@@ -124,3 +124,30 @@ model Reputation {
   @@index([ratedByFid])
 }
 
+model VerificationCode {
+  id            String   @id @default(cuid())
+  code          String   @unique // 5-digit code
+  creatorFid    Int      // FID of user who created the code
+  creator       User     @relation("VerificationCodesCreated", fields: [creatorFid], references: [fid], onDelete: Cascade)
+  
+  // Status
+  used          Boolean  @default(false) // Whether code has been used
+  usedByFid     Int?     // FID of user who used the code
+  usedBy        User?    @relation("VerificationCodesUsed", fields: [usedByFid], references: [fid])
+  
+  // Meeting created from this code
+  meetingId     String?  @unique
+  meeting       Meeting?
+  
+  // Expiration
+  expiresAt     DateTime // Code expires after 10 minutes
+  createdAt     DateTime @default(now())
+  usedAt        DateTime?
+  
+  @@index([code])
+  @@index([creatorFid])
+  @@index([usedByFid])
+  @@index([expiresAt])
+  @@index([used])
+}
+
