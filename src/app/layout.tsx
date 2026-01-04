@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ThemeToggle from "@/components/ThemeToggle";
 import FarcasterSDK from "@/components/FarcasterSDK";
+import BaseAppMeta from "@/components/BaseAppMeta";
 import { UserProvider } from "@/contexts/UserContext";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -71,10 +72,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <meta name="base:app_id" content="695a94c34d3a403912ed8cf0" />
-      </head>
       <body className={inter.className}>
+        <BaseAppMeta />
         <UserProvider>
           <FarcasterSDK />
           <ThemeToggle />
