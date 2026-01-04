@@ -35,10 +35,10 @@ export async function GET() {
       splashImageUrl: `${baseUrl}/api/og`,
       splashBackgroundColor: '#ffffff',
       primaryCategory: 'social',
-      tags: ['social', 'meetings', 'reputation', 'verification', 'nfc', 'qr', 'base', 'eas'],
+      tags: ['social', 'meetings', 'reputation', 'verification', 'nfc'], // Max 5 tags
       heroImageUrl: `${baseUrl}/api/og`,
-      tagline: 'Verify real-world meetings and build reputation',
-      ogTitle: 'Proof of Meeting - Verify Real-world Meetings',
+      tagline: 'Verify meetings & build rep', // Max 30 chars
+      ogTitle: 'Proof of Meeting', // Max 30 chars
       ogDescription: 'Verify real-world meetings and build reputation using EAS on Base with NFC support',
       ogImageUrl: `${baseUrl}/api/og`,
       requiredChains: ['eip155:8453'], // Base Mainnet
