@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] });
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proof-of-meeting.vercel.app';
 
 export const metadata: Metadata = {
-  title: "Proof of Meeting - Verify Real-world Meetings",
+  title: "Proof of Meeting",
   description: "Verify real-world meetings and build reputation using EAS on Base with NFC support",
   manifest: `${baseUrl}/manifest.json`,
   icons: {
@@ -23,16 +23,25 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "Proof of Meeting - Verify Real-world Meetings",
+    title: "Proof of Meeting",
     description: "Verify real-world meetings and build reputation using EAS on Base with NFC support",
-    images: [`${baseUrl}/api/og`],
+    images: [
+      {
+        url: `${baseUrl}/api/og/miniapp`,
+        width: 1200,
+        height: 630,
+        alt: "Proof of Meeting",
+      },
+    ],
     type: "website",
+    url: `${baseUrl}/`,
+    siteName: "Proof of Meeting",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Proof of Meeting - Verify Real-world Meetings",
+    title: "Proof of Meeting",
     description: "Verify real-world meetings and build reputation using EAS on Base with NFC support",
-    images: [`${baseUrl}/api/og`],
+    images: [`${baseUrl}/api/og/miniapp`],
   },
 };
 

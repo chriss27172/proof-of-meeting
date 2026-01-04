@@ -30,11 +30,11 @@ export async function GET() {
       subtitle: 'Verify meetings and build rep', // Krótki podtytuł, no special characters
       primaryCategory: 'social',
       tags: ['social', 'meetings', 'reputation', 'verification', 'nfc'], // Max 5 tags
-      heroImageUrl: `${baseUrl}/api/og`,
+      heroImageUrl: `${baseUrl}/api/og/miniapp`,
       tagline: 'Verify meetings and build rep', // Max 30 chars, no special characters
       ogTitle: 'Proof of Meeting', // Max 30 chars
       ogDescription: 'Verify real-world meetings and build reputation using EAS on Base with NFC support',
-      ogImageUrl: `${baseUrl}/api/og`,
+      ogImageUrl: `${baseUrl}/api/og/miniapp`, // Używamy tego samego obrazka co imageUrl dla spójności
       requiredChains: ['eip155:8453'], // Base Mainnet
       requiredCapabilities: ['actions.ready', 'actions.signIn'],
       screenshotUrls: [

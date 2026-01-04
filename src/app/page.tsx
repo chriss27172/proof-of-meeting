@@ -32,12 +32,27 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 
   return {
-    title: 'Proof of Meeting - Verify Real-world Meetings',
+    title: 'Proof of Meeting',
     description: 'Verify real-world meetings and build reputation using EAS on Base with NFC support',
     openGraph: {
-      title: 'Proof of Meeting - Verify Real-world Meetings',
+      title: 'Proof of Meeting',
       description: 'Verify real-world meetings and build reputation',
-      images: [`${baseUrl}/api/og`],
+      images: [
+        {
+          url: `${baseUrl}/api/og/miniapp`,
+          width: 1200,
+          height: 630,
+          alt: 'Proof of Meeting',
+        },
+      ],
+      type: 'website',
+      url: `${baseUrl}/`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Proof of Meeting',
+      description: 'Verify real-world meetings and build reputation',
+      images: [`${baseUrl}/api/og/miniapp`],
     },
     other: {
       ...frameMetadata,
