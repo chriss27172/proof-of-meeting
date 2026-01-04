@@ -248,37 +248,37 @@ export async function POST(req: NextRequest) {
     }
 
     // Create TWO mutual meetings automatically - both confirmed!
-    const [meeting1, meeting2] = await prisma.$transaction([
-      prisma.meeting.create({
-        data: {
-          initiatorFid: fid, // Person who entered the code
-          participantFid: verificationCode.creatorFid, // Person who created the code
-          status: 'confirmed',
-          verificationMethod: 'code',
-          confirmedAt: new Date(),
-          verificationCodeId: verificationCode.id,
-        },
-      }),
-      prisma.meeting.create({
-        data: {
-          initiatorFid: verificationCode.creatorFid, // Person who created the code
-          participantFid: fid, // Person who entered the code
-          status: 'confirmed',
-          verificationMethod: 'code',
-          confirmedAt: new Date(),
-        },
-      }),
-      // Mark code as used
-      prisma.verificationCode.update({
-        where: { id: verificationCode.id },
-        data: {
-          used: true,
-          usedByFid: fid,
-          usedAt: new Date(),
-          meetingId: meeting1.id, // Link to first meeting
-        },
-      }),
-    ]);
+    const meeting1 = await prisma.meeting.create({
+      data: {
+        initiatorFid: fid, // Person who entered the code
+        participantFid: verificationCode.creatorFid, // Person who created the code
+        status: 'confirmed',
+        verificationMethod: 'code',
+        confirmedAt: new Date(),
+        verificationCodeId: verificationCode.id,
+      },
+    });
+
+    const meeting2 = await prisma.meeting.create({
+      data: {
+        initiatorFid: verificationCode.creatorFid, // Person who created the code
+        participantFid: fid, // Person who entered the code
+        status: 'confirmed',
+        verificationMethod: 'code',
+        confirmedAt: new Date(),
+      },
+    });
+
+    // Mark code as used
+    await prisma.verificationCode.update({
+      where: { id: verificationCode.id },
+      data: {
+        used: true,
+        usedByFid: fid,
+        usedAt: new Date(),
+        meetingId: meeting1.id, // Link to first meeting
+      },
+    });
 
     // Update reputation scores
     const { updateReputationAfterMeeting } = await import('@/lib/reputation');
