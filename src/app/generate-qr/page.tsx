@@ -3,34 +3,65 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useFarcasterUser } from '@/hooks/useFarcasterUser';
+import QRCodeDisplay from '@/components/QRCodeDisplay';
 
 export default function GenerateQRPage() {
   const router = useRouter();
+  const { user, loading: userLoading, error: userError } = useFarcasterUser();
+  const [qrData, setQrData] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch current user's FID from API
-    fetch('/api/user/me')
-      .then(res => res.json())
-      .then(data => {
+    if (userLoading) return;
+
+    if (userError || !user) {
+      setError('Unable to detect your FID. Please use the Frame interface in Farcaster or BaseApp.');
+      setLoading(false);
+      return;
+    }
+
+    // Create or get user in database
+    const createOrGetUser = async () => {
+      try {
+        const response = await fetch('/api/user/me', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fid: user.fid, username: user.username }),
+        });
+
+        const data = await response.json();
+        
         if (data.error) {
-          setError('Please use the Frame interface in Farcaster or BaseApp to generate your QR code. Your FID is automatically detected when using the Frame.');
+          setError(data.error);
           setLoading(false);
-        } else if (data.fid) {
-          // Redirect to QR page with authenticated FID
-          router.push(`/qr-by-fid/${data.fid}`);
-        } else {
-          setError('Unable to detect your FID. Please use the Frame interface in Farcaster or BaseApp.');
-          setLoading(false);
+          return;
         }
-      })
-      .catch(err => {
-        console.error('Error fetching user:', err);
-        setError('Please use the Frame interface in Farcaster or BaseApp to generate your QR code.');
+
+        // Get QR code from user data or generate new one
+        if (data.qrCode) {
+          setQrData(data.qrCode);
+        } else {
+          // Fallback: generate QR code data client-side
+          const qrCodeData = {
+            fid: user.fid,
+            username: user.username,
+            qrId: crypto.randomUUID(),
+            timestamp: Date.now(),
+          };
+          setQrData(JSON.stringify(qrCodeData));
+        }
         setLoading(false);
-      });
-  }, [router]);
+      } catch (err) {
+        console.error('Error creating/getting user:', err);
+        setError('Failed to generate QR code');
+        setLoading(false);
+      }
+    };
+
+    createOrGetUser();
+  }, [user, userLoading, userError]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
@@ -52,30 +83,47 @@ export default function GenerateQRPage() {
           )}
 
           {error && (
-            <div className="bg-yellow-100 dark:bg-yellow-900 border border-yellow-400 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded mb-6">
-              <p className="font-semibold mb-2">⚠️ Security Notice</p>
+            <div className="bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-6">
               <p className="text-sm">{error}</p>
-              <p className="text-sm mt-2">
-                This prevents fraud - your FID is automatically detected from your Farcaster/BaseApp account.
-              </p>
             </div>
           )}
 
-          <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-6 mb-6">
-            <h3 className="text-lg font-bold mb-2">🔒 Why we don't allow manual FID entry:</h3>
-            <ul className="list-disc list-inside space-y-2 text-sm text-gray-700 dark:text-gray-300">
-              <li>Prevents fraud - no one can impersonate someone else</li>
-              <li>Your FID is automatically detected from your account</li>
-              <li>All verifications are authentic and secure</li>
-            </ul>
-          </div>
+          {qrData && user && (
+            <div className="space-y-6">
+              <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-6">
+                <div className="text-center">
+                  <div className="mb-4 flex justify-center">
+                    <QRCodeDisplay data={qrData} size={256} />
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="font-semibold mb-2">FID: {user.fid}</p>
+                    {user.username && (
+                      <p className="mb-2">Username: @{user.username}</p>
+                    )}
+                    <p className="text-xs">
+                      This QR code expires in 5 minutes. Refresh to generate a new one.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-          <div className="text-center space-y-4">
+              <div className="bg-green-50 dark:bg-green-900 rounded-lg p-6">
+                <h3 className="text-lg font-bold mb-2">How to use:</h3>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                  <li>Show this QR code to the person you're meeting</li>
+                  <li>They scan it using the "Scan QR/NFC" button</li>
+                  <li>Both of you will be automatically verified!</li>
+                </ol>
+              </div>
+            </div>
+          )}
+
+          <div className="text-center space-y-4 mt-6">
             <Link
               href="/scan"
               className="block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition"
             >
-              Scan Someone's QR Code →
+              Scan QR/NFC →
             </Link>
             <Link
               href="/"
@@ -89,4 +137,3 @@ export default function GenerateQRPage() {
     </div>
   );
 }
-
