@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   title: "Proof of Meeting - Verify Real-world Meetings",
   description: "Verify real-world meetings and build reputation using EAS on Base with NFC support",
   manifest: `${baseUrl}/manifest.json`,
+  icons: {
+    icon: `${baseUrl}/icon.png`,
+    apple: `${baseUrl}/icon.png`,
+  },
   openGraph: {
     title: "Proof of Meeting - Verify Real-world Meetings",
     description: "Verify real-world meetings and build reputation using EAS on Base with NFC support",

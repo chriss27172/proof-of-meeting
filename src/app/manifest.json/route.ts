@@ -16,6 +16,18 @@ export async function GET() {
     theme_color: '#3b82f6',
     icons: [
       {
+        src: `${baseUrl}/icon.png`,
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: `${baseUrl}/icon.png`,
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
         src: `${baseUrl}/api/og`,
         sizes: '1200x630',
         type: 'image/png',
