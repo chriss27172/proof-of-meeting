@@ -5,9 +5,24 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 const inter = Inter({ subsets: ["latin"] });
 
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proof-of-meeting.vercel.app';
+
 export const metadata: Metadata = {
   title: "Proof of Meeting - Verify Real-world Meetings",
   description: "Verify real-world meetings and build reputation using EAS on Base with NFC support",
+  manifest: `${baseUrl}/manifest.json`,
+  openGraph: {
+    title: "Proof of Meeting - Verify Real-world Meetings",
+    description: "Verify real-world meetings and build reputation using EAS on Base with NFC support",
+    images: [`${baseUrl}/api/og`],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Proof of Meeting - Verify Real-world Meetings",
+    description: "Verify real-world meetings and build reputation using EAS on Base with NFC support",
+    images: [`${baseUrl}/api/og`],
+  },
 };
 
 export default function RootLayout({
