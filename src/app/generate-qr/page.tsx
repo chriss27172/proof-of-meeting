@@ -17,7 +17,7 @@ export default function GenerateQRPage() {
   const [showManualInput, setShowManualInput] = useState(false);
 
   useEffect(() => {
-    console.log('GenerateQR useEffect - user:', user, 'loading:', userLoading, 'error:', userError);
+    console.log('🔍 GenerateQR useEffect - user:', user, 'loading:', userLoading, 'error:', userError);
     
     if (userLoading) {
       setLoading(true);
@@ -29,29 +29,34 @@ export default function GenerateQRPage() {
       console.log('✅ User detected, creating/getting user data:', user);
       // User data available from SDK
       createOrGetUserFromData(user.fid, user.username);
+      setShowManualInput(false); // Ukryj manual input jeśli użytkownik jest wykryty
       return;
     }
 
     // Jeśli nie ma błędu i nie ma użytkownika, czekaj jeszcze chwilę
     // (SDK może potrzebować więcej czasu na załadowanie w miniapp)
-    if (!userError && !user) {
+    if (!userError && !user && !userLoading) {
       console.log('⏳ Waiting for user detection...');
       const timeout = setTimeout(() => {
-        console.log('⏰ Timeout reached, user still not detected');
-        // Po 10 sekundach, jeśli nadal nie ma użytkownika, pozwól na ręczne wprowadzenie
-        // (ale tylko jeśli nie jesteśmy w miniapp - w miniapp powinniśmy zawsze mieć użytkownika)
+        console.log('⏰ Timeout reached (15s), user still not detected');
+        // Po 15 sekundach, jeśli nadal nie ma użytkownika, pozwól na ręczne wprowadzenie
         setShowManualInput(true);
         setLoading(false);
-      }, 10000); // Zwiększamy timeout do 10 sekund
+      }, 15000); // Zwiększamy timeout do 15 sekund dla miniapp
 
       return () => clearTimeout(timeout);
     }
 
-    // Jeśli jest błąd lub użytkownik nie został wykryty, pozwól na ręczne wprowadzenie
+    // Jeśli jest błąd lub użytkownik nie został wykryty po zakończeniu ładowania, pozwól na ręczne wprowadzenie
     if (userError || (!user && !userLoading)) {
-      console.log('❌ User not detected, showing manual input');
-      setShowManualInput(true);
-      setLoading(false);
+      console.log('❌ User not detected after loading, showing manual input');
+      // Nie pokazuj manual input od razu - daj czas na wykrycie użytkownika
+      const timeout = setTimeout(() => {
+        setShowManualInput(true);
+        setLoading(false);
+      }, 5000); // Czekaj 5 sekund przed pokazaniem manual input
+      
+      return () => clearTimeout(timeout);
     }
   }, [user, userLoading, userError]);
 
@@ -199,7 +204,7 @@ export default function GenerateQRPage() {
             </div>
           )}
 
-          {qrData && user && (
+          {qrData && (
             <div className="space-y-6">
               <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-6">
                 <div className="text-center">
@@ -207,9 +212,13 @@ export default function GenerateQRPage() {
                     <QRCodeDisplay data={qrData} size={256} />
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    <p className="font-semibold mb-2">FID: {user.fid}</p>
-                    {user.username && (
-                      <p className="mb-2">Username: @{user.username}</p>
+                    {user && user.fid && (
+                      <>
+                        <p className="font-semibold mb-2">FID: {user.fid}</p>
+                        {user.username && (
+                          <p className="mb-2">Username: @{user.username}</p>
+                        )}
+                      </>
                     )}
                     <p className="text-xs">
                       This QR code expires in 5 minutes. Refresh to generate a new one.
