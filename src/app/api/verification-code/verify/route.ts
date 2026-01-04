@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     try {
       const frameData = await getFrameMessage(body);
       if (frameData?.isValid && frameData.message) {
-        fid = frameData.message.fid;
+        fid = frameData.message.interactor.fid;
       }
     } catch {
       // Not a frame request, continue with regular API

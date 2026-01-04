@@ -24,7 +24,7 @@ export async function POST(
     try {
       const frameData = await getFrameMessage(body);
       if (frameData?.isValid && frameData.message) {
-        fid = frameData.message.fid;
+        fid = frameData.message.interactor.fid;
       }
     } catch {
       // Not a frame request, check for direct API call with wallet
