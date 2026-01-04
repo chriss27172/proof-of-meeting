@@ -128,6 +128,7 @@ export async function createAttestation(
       address: EAS_CONTRACT_ADDRESS,
       abi: EAS_ABI,
       functionName: 'attest',
+      chain: walletClient.chain || undefined,
       args: [
         SCHEMA_UID,
         {
