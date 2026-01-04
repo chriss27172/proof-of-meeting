@@ -14,20 +14,15 @@ export default async function QRByFidPage({
     notFound();
   }
 
-  // Get or create user
-  let user = await prisma.user.findUnique({
+  // Get user - don't create if doesn't exist (security: prevent fake FIDs)
+  const user = await prisma.user.findUnique({
     where: { fid },
   });
 
   if (!user) {
-    // Create user with QR code
-    const qrData = generateQRCodeData(fid);
-    user = await prisma.user.create({
-      data: {
-        fid,
-        qrCode: JSON.stringify(qrData),
-      },
-    });
+    // User doesn't exist - they need to use Frame interface first
+    // This prevents creating fake users with arbitrary FIDs
+    redirect('/generate-qr');
   }
 
   // Parse QR code data
