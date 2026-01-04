@@ -56,6 +56,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     other: {
       ...frameMetadata,
+      'base:app_id': '695a94c34d3a403912ed8cf0',
     },
   };
 }
