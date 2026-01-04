@@ -37,6 +37,12 @@ export async function GET() {
       ogImageUrl: `${baseUrl}/api/og`,
       requiredChains: ['eip155:8453'], // Base Mainnet
       requiredCapabilities: ['actions.ready', 'actions.signIn'],
+      screenshotUrls: [
+        `${baseUrl}/api/og/screenshots/home`, // Home screen
+        `${baseUrl}/api/og/screenshots/profile`, // Profile screen
+        `${baseUrl}/api/og/screenshots/scan`, // QR/NFC scan screen
+        `${baseUrl}/api/og/screenshots/leaderboard`, // Leaderboard screen
+      ],
     },
   };
 
