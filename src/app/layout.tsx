@@ -59,8 +59,8 @@ export default function RootLayout({
       <body className={inter.className}>
         <UserProvider>
           <FarcasterSDK />
-        <ThemeToggle />
-        {children}
+          <ThemeToggle />
+          {children}
         </UserProvider>
       </body>
     </html>

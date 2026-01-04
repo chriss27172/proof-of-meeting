@@ -1,7 +1,6 @@
 import { getFrameMetadata } from '@coinbase/onchainkit';
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import BuyMeCoffee from '@/components/BuyMeCoffee';
+import HomePageContent from '@/components/HomePageContent';
 
 export async function generateMetadata(): Promise<Metadata> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
@@ -44,8 +43,6 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
-
-import HomePageContent from '@/components/HomePageContent';
 
 export default function Home() {
   return <HomePageContent />;
