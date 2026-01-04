@@ -15,7 +15,7 @@ export default async function QRByFidPage({
   }
 
   // Get user - don't create if doesn't exist (security: prevent fake FIDs)
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { fid },
   });
 
@@ -53,7 +53,7 @@ export default async function QRByFidPage({
           <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-6 mb-6">
             <div className="text-center">
               <div className="mb-4">
-                <QRCodeDisplay value={JSON.stringify(qrData)} size={256} />
+                <QRCodeDisplay data={JSON.stringify(qrData)} size={256} />
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 <p className="font-semibold mb-2">FID: {fid}</p>
