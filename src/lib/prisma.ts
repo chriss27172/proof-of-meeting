@@ -23,7 +23,7 @@ if (databaseUrl.startsWith('libsql://')) {
       authToken,
     });
     
-    const adapter = new PrismaLibSQL(libsql);
+    const adapter = new PrismaLibSQL(libsql as any);
     
     prisma = globalForPrisma.prisma ?? new PrismaClient({
       adapter,

@@ -36,9 +36,9 @@ export async function POST(req: NextRequest) {
     const buttonIndex = frameData.message.button;
     
     // Try to get username from frame data (if available)
-    const username = frameData.message.interactor?.username || 
-                     frameData.message.cast?.author?.username || 
-                     null;
+    // Note: username is not directly available in FrameValidationData
+    // We'll fetch it from database if user exists, or leave it null
+    const username: string | null = null;
 
     // Main menu
     if (!buttonIndex) {

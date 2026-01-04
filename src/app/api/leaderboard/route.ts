@@ -1,6 +1,8 @@
 import { type NextRequest } from 'next/server';
 import { getLeaderboard } from '@/lib/leaderboard';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;

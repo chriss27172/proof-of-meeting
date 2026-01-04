@@ -2,22 +2,43 @@
 
 import { useEffect } from 'react';
 
+/**
+ * Farcaster MiniApp SDK Integration
+ * Calls sdk.actions.ready() after the app is fully loaded to hide the splash screen
+ * See: https://miniapps.farcaster.xyz/docs/getting-started#making-your-app-display
+ */
 export default function FarcasterSDK() {
   useEffect(() => {
     const initSDK = async () => {
       try {
+        // Dynamically import SDK to avoid SSR issues
         const { sdk } = await import('@farcaster/miniapp-sdk');
+
+        console.log('FarcasterSDK: Initializing SDK...');
+
+        // Call ready() after app is fully loaded
+        // This hides the splash screen and displays the app content
         await sdk.actions.ready();
+
+        console.log('FarcasterSDK: SDK ready - splash screen hidden');
+
+        // Dispatch custom event to notify other components that SDK is ready
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('farcaster-sdk-ready'));
         }
       } catch (error) {
-        console.error('Failed to initialize Farcaster SDK:', error);
+        // SDK might not be available if not running in Farcaster miniapp context
+        // This is fine - the app will still work in regular browsers
+        if (error instanceof Error && error.message.includes('farcaster')) {
+          console.log('FarcasterSDK: SDK not available (running outside Farcaster context)');
+        } else {
+          console.error('FarcasterSDK: Error initializing SDK:', error);
+        }
       }
     };
 
     initSDK();
   }, []);
 
-  return null;
+  return null; // This component doesn't render anything
 }

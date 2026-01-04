@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
 import { useFarcasterUser, FarcasterUser } from '@/hooks/useFarcasterUser';
 
 interface UserContextType {
@@ -9,9 +9,13 @@ interface UserContextType {
   error: string | null;
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+const UserContext = createContext<UserContextType>({
+  user: null,
+  loading: true,
+  error: null,
+});
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
+export function UserProvider({ children }: { children: ReactNode }) {
   const { user, loading, error } = useFarcasterUser();
 
   return (
@@ -22,9 +26,5 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useUser() {
-  const context = useContext(UserContext);
-  if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  return context;
+  return useContext(UserContext);
 }

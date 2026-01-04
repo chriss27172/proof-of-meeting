@@ -110,7 +110,7 @@ export async function createAttestation(
   walletClient: WalletClient,
   recipient: `0x${string}`,
   data: AttestationData,
-  publicClient: PublicClient = baseClient
+  publicClient: typeof baseClient = baseClient
 ): Promise<string> {
   try {
     if (!walletClient.account) {
@@ -128,6 +128,7 @@ export async function createAttestation(
       address: EAS_CONTRACT_ADDRESS,
       abi: EAS_ABI,
       functionName: 'attest',
+      chain: walletClient.chain || undefined,
       args: [
         SCHEMA_UID,
         {

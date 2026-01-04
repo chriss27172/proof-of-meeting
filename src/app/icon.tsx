@@ -7,7 +7,7 @@ export const size = {
 };
 export const contentType = 'image/png';
 
-export default function Icon() {
+export default async function Icon() {
   return new ImageResponse(
     (
       <div
@@ -15,6 +15,7 @@ export default function Icon() {
           height: '100%',
           width: '100%',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: '#3b82f6',

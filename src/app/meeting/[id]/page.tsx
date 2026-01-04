@@ -21,6 +21,22 @@ export default async function MeetingPage({
     notFound();
   }
 
+  // Find mutual meeting (where initiator and participant are swapped)
+  const mutualMeeting = await prisma.meeting.findFirst({
+    where: {
+      initiatorFid: meeting.participantFid,
+      participantFid: meeting.initiatorFid,
+      createdAt: {
+        // Find meetings created within 1 hour of each other (mutual verification)
+        gte: new Date(meeting.createdAt.getTime() - 60 * 60 * 1000),
+        lte: new Date(meeting.createdAt.getTime() + 60 * 60 * 1000),
+      },
+    },
+    include: {
+      attestation: true,
+    },
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
       <div className="container mx-auto px-4 py-16">

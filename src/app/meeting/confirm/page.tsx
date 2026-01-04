@@ -1,11 +1,11 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { parseQRCodeData, validateQRCode } from '@/lib/qrCode';
 import { parseNFCTagData, validateNFCTag } from '@/lib/nfc';
 
-export default function ConfirmMeetingPage() {
+function ConfirmMeetingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -92,5 +92,20 @@ export default function ConfirmMeetingPage() {
   }
 
   return null;
+}
+
+export default function ConfirmMeetingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <p className="text-xl">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ConfirmMeetingContent />
+    </Suspense>
+  );
 }
 

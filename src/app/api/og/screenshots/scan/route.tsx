@@ -13,7 +13,9 @@ export async function GET(req: NextRequest) {
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: '#ffffff',
+            backgroundColor: '#f8fafc',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           {/* Header */}
@@ -21,19 +23,18 @@ export async function GET(req: NextRequest) {
             style={{
               display: 'flex',
               width: '100%',
-              padding: '60px 40px',
+              padding: '80px 40px',
               backgroundColor: '#3b82f6',
-              backgroundImage: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
             <div style={{ fontSize: 64, fontWeight: 'bold', color: '#ffffff' }}>
-              Scan QR/NFC
+              📱 Scan QR/NFC
             </div>
           </div>
-
-          {/* Content */}
+          
+          {/* Scanner Area */}
           <div
             style={{
               display: 'flex',
@@ -42,36 +43,83 @@ export async function GET(req: NextRequest) {
               padding: '80px 60px',
               alignItems: 'center',
               justifyContent: 'center',
+              width: '100%',
             }}
           >
-            {/* Scanner Frame */}
+            {/* QR Scanner Frame */}
             <div
               style={{
-                width: 800,
-                height: 800,
-                border: '10px solid #3b82f6',
-                borderRadius: '20px',
+                width: 600,
+                height: 600,
+                border: '6px solid #3b82f6',
+                borderRadius: '30px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: 60,
+                backgroundColor: '#ffffff',
                 position: 'relative',
               }}
             >
-              <div style={{ fontSize: 120 }}>📷</div>
               {/* Corner markers */}
-              <div style={{ position: 'absolute', top: -10, left: -10, width: 80, height: 80, borderTop: '10px solid #1e40af', borderLeft: '10px solid #1e40af', borderRadius: '10px 0 0 0' }} />
-              <div style={{ position: 'absolute', top: -10, right: -10, width: 80, height: 80, borderTop: '10px solid #1e40af', borderRight: '10px solid #1e40af', borderRadius: '0 10px 0 0' }} />
-              <div style={{ position: 'absolute', bottom: -10, left: -10, width: 80, height: 80, borderBottom: '10px solid #1e40af', borderLeft: '10px solid #1e40af', borderRadius: '0 0 0 10px' }} />
-              <div style={{ position: 'absolute', bottom: -10, right: -10, width: 80, height: 80, borderBottom: '10px solid #1e40af', borderRight: '10px solid #1e40af', borderRadius: '0 0 10px 0' }} />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 30,
+                  left: 30,
+                  width: 60,
+                  height: 60,
+                  borderTop: '8px solid #3b82f6',
+                  borderLeft: '8px solid #3b82f6',
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 30,
+                  right: 30,
+                  width: 60,
+                  height: 60,
+                  borderTop: '8px solid #3b82f6',
+                  borderRight: '8px solid #3b82f6',
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 30,
+                  left: 30,
+                  width: 60,
+                  height: 60,
+                  borderBottom: '8px solid #3b82f6',
+                  borderLeft: '8px solid #3b82f6',
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 30,
+                  right: 30,
+                  width: 60,
+                  height: 60,
+                  borderBottom: '8px solid #3b82f6',
+                  borderRight: '8px solid #3b82f6',
+                }}
+              />
+              
+              {/* QR Code placeholder */}
+              <div style={{ fontSize: 180 }}>📱</div>
             </div>
-
-            {/* Method Selection */}
-            <div style={{ display: 'flex', gap: 30 }}>
-              <div style={{ padding: '25px 40px', backgroundColor: '#3b82f6', borderRadius: '12px', fontSize: 28, fontWeight: 'bold', color: '#ffffff' }}>
+            
+            <div style={{ fontSize: 36, marginTop: 60, color: '#64748b', textAlign: 'center', padding: '0 40px' }}>
+              Position QR code or NFC tag within frame
+            </div>
+            
+            {/* Method selector */}
+            <div style={{ display: 'flex', gap: 30, marginTop: 60 }}>
+              <div style={{ padding: '25px 50px', backgroundColor: '#3b82f6', borderRadius: '16px', fontSize: 32, fontWeight: 'bold', color: '#ffffff' }}>
                 QR Code
               </div>
-              <div style={{ padding: '25px 40px', backgroundColor: '#e0e7ff', borderRadius: '12px', fontSize: 28, fontWeight: 'bold', color: '#1e40af' }}>
+              <div style={{ padding: '25px 50px', backgroundColor: '#e2e8f0', borderRadius: '16px', fontSize: 32, fontWeight: 'bold', color: '#64748b' }}>
                 NFC Tag
               </div>
             </div>

@@ -12,27 +12,31 @@ export default function GenerateQRPage() {
   const [qrData, setQrData] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [manualFid, setManualFid] = useState<string>('');
-  const [manualUsername, setManualUsername] = useState<string>('');
-  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualFid, setManualFid] = useState('');
+  const [manualUsername, setManualUsername] = useState('');
+  const [showManualInput, setShowManualInput] = useState(false);
 
   useEffect(() => {
     if (userLoading) return;
 
-    if (userError || !user?.fid) {
-      setError('Unable to detect your Farcaster ID. Please try auto-detection again or enter it manually.');
+    if (userError) {
+      // If there's an error, allow manual input
+      setShowManualInput(true);
       setLoading(false);
-      setShowManualForm(true); // Show manual form if auto-detection fails
       return;
     }
 
-    // If user is detected, proceed to generate QR code
-    generateQrCodeForUser(user.fid, user.username);
+    if (user && user.fid) {
+      // User data available from SDK
+      createOrGetUserFromData(user.fid, user.username);
+    } else {
+      // No user data, allow manual input
+      setShowManualInput(true);
+      setLoading(false);
+    }
   }, [user, userLoading, userError]);
 
-  const generateQrCodeForUser = async (fid: number, username?: string) => {
-    setLoading(true);
-    setError(null);
+  const createOrGetUserFromData = async (fid: number, username?: string) => {
     try {
       const response = await fetch('/api/user/me', {
         method: 'POST',
@@ -48,9 +52,20 @@ export default function GenerateQRPage() {
         return;
       }
 
-      setQrData(data.qrCode);
+      // Get QR code from user data or generate new one
+      if (data.qrCode) {
+        setQrData(data.qrCode);
+      } else {
+        // Fallback: generate QR code data client-side
+        const qrCodeData = {
+          fid,
+          username,
+          qrId: crypto.randomUUID(),
+          timestamp: Date.now(),
+        };
+        setQrData(JSON.stringify(qrCodeData));
+      }
       setLoading(false);
-      setShowManualForm(false); // Hide manual form if successful
     } catch (err) {
       console.error('Error creating/getting user:', err);
       setError('Failed to generate QR code');
@@ -58,22 +73,21 @@ export default function GenerateQRPage() {
     }
   };
 
-  const handleManualGenerate = (e: React.FormEvent) => {
+  const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const fidNum = parseInt(manualFid);
-    if (isNaN(fidNum)) {
-      setError('Please enter a valid Farcaster ID (number).');
+
+    const fid = parseInt(manualFid);
+
+    if (!fid || isNaN(fid)) {
+      setError('Please enter a valid FID');
       return;
     }
-    generateQrCodeForUser(fidNum, manualUsername || undefined);
-  };
 
-  const handleTryAutoDetection = () => {
-    setLoading(true);
     setError(null);
-    setShowManualForm(false);
-    // Re-trigger useFarcasterUser by changing a state or key, or simply reload
-    window.location.reload();
+    setLoading(true);
+    setShowManualInput(false);
+
+    createOrGetUserFromData(fid, manualUsername.trim() || undefined);
   };
 
   return (
@@ -95,53 +109,75 @@ export default function GenerateQRPage() {
             </div>
           )}
 
-          {error && (
+          {error && !showManualInput && (
             <div className="bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-6">
               <p className="text-sm">{error}</p>
+              <div className="mt-3 space-y-2">
+                <button
+                  onClick={() => setShowManualInput(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded transition mr-2"
+                >
+                  Enter Manually
+                </button>
+                {error.includes('wallet') && (
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-bold py-2 px-4 rounded transition"
+                  >
+                    Try Again
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
-          {showManualForm && !loading && (
-            <form onSubmit={handleManualGenerate} className="space-y-4 mb-6">
-              <div>
-                <label htmlFor="fid" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Farcaster ID (FID)
-                </label>
-                <input
-                  type="number"
-                  id="fid"
-                  value={manualFid}
-                  onChange={(e) => setManualFid(e.target.value)}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Username (Optional)
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  value={manualUsername}
-                  onChange={(e) => setManualUsername(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition"
-              >
-                Generate QR Code
-              </button>
-              <button
-                type="button"
-                onClick={handleTryAutoDetection}
-                className="w-full mt-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-              >
-                Try Auto-Detection Again
-              </button>
-            </form>
+          {showManualInput && (
+            <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-bold mb-4">Enter Your Farcaster ID</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Since automatic detection failed, please enter your FID manually.
+                You can find your FID on your Farcaster profile or in your settings.
+              </p>
+              <form onSubmit={handleManualSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">FID (Farcaster ID) *</label>
+                  <input
+                    type="number"
+                    value={manualFid}
+                    onChange={(e) => setManualFid(e.target.value)}
+                    placeholder="12345"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Username (optional)</label>
+                  <input
+                    type="text"
+                    value={manualUsername}
+                    onChange={(e) => setManualUsername(e.target.value)}
+                    placeholder="@username"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded transition"
+                  >
+                    {loading ? 'Generating...' : 'Generate QR Code'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowManualInput(false)}
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           )}
 
           {qrData && user && (
@@ -184,6 +220,22 @@ export default function GenerateQRPage() {
           )}
 
           <div className="text-center space-y-4 mt-6">
+            {!qrData && !loading && !showManualInput && (
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowManualInput(true)}
+                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition"
+                >
+                  Enter FID Manually
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="block w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition"
+                >
+                  Try Auto-Detection Again
+                </button>
+              </div>
+            )}
             <Link
               href="/scan"
               className="block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition"
@@ -202,4 +254,3 @@ export default function GenerateQRPage() {
     </div>
   );
 }
-

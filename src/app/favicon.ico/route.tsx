@@ -1,39 +1,42 @@
 import { ImageResponse } from '@vercel/og';
+import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
-export const size = {
-  width: 32,
-  height: 32,
-};
-export const contentType = 'image/x-icon';
 
-export default async function Favicon() {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#3b82f6',
-          backgroundImage: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
-        }}
-      >
+export async function GET(req: NextRequest) {
+  try {
+    return new ImageResponse(
+      (
         <div
           style={{
+            height: '100%',
+            width: '100%',
             display: 'flex',
-            fontSize: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#3b82f6',
+            backgroundImage: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
           }}
         >
-          🤝
+          <div
+            style={{
+              display: 'flex',
+              fontSize: 24,
+            }}
+          >
+            🤝
+          </div>
         </div>
-      </div>
-    ),
-    {
-      ...size,
-    }
-  );
+      ),
+      {
+        width: 32,
+        height: 32,
+      }
+    );
+  } catch (e: any) {
+    console.log(`${e.message}`);
+    return new Response(`Failed to generate favicon`, {
+      status: 500,
+    });
+  }
 }
-

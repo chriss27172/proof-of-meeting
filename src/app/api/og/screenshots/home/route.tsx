@@ -21,19 +21,20 @@ export async function GET(req: NextRequest) {
             style={{
               display: 'flex',
               width: '100%',
-              padding: '60px 40px',
+              padding: '80px 40px',
               backgroundColor: '#3b82f6',
               backgroundImage: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
               alignItems: 'center',
               justifyContent: 'center',
+              flexDirection: 'column',
             }}
           >
-            <div style={{ fontSize: 100, marginRight: 30 }}>🤝</div>
-            <div style={{ fontSize: 64, fontWeight: 'bold', color: '#ffffff' }}>
+            <div style={{ fontSize: 120, marginBottom: 30 }}>🤝</div>
+            <div style={{ fontSize: 72, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' }}>
               Proof of Meeting
             </div>
           </div>
-
+          
           {/* Content */}
           <div
             style={{
@@ -42,25 +43,25 @@ export async function GET(req: NextRequest) {
               flexDirection: 'column',
               padding: '80px 60px',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
             }}
           >
-            <div style={{ fontSize: 48, fontWeight: 'bold', marginBottom: 40, color: '#1e40af', textAlign: 'center' }}>
+            <div style={{ fontSize: 56, fontWeight: 'bold', marginBottom: 40, color: '#1e40af', textAlign: 'center' }}>
               Verify Real-world Meetings
             </div>
-            <div style={{ fontSize: 32, color: '#64748b', marginBottom: 60, textAlign: 'center' }}>
+            <div style={{ fontSize: 36, color: '#64748b', marginBottom: 80, textAlign: 'center' }}>
               Build reputation using EAS on Base
             </div>
-
+            
             {/* Buttons */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 30, width: '100%', maxWidth: 600 }}>
-              <div style={{ padding: '30px', backgroundColor: '#eff6ff', borderRadius: '16px', fontSize: 28, fontWeight: 'bold', color: '#1e40af', textAlign: 'center' }}>
+              <div style={{ padding: '40px', backgroundColor: '#eff6ff', borderRadius: '20px', fontSize: 32, fontWeight: 'bold', color: '#1e40af', textAlign: 'center' }}>
                 👤 My Profile
               </div>
-              <div style={{ padding: '30px', backgroundColor: '#eff6ff', borderRadius: '16px', fontSize: 28, fontWeight: 'bold', color: '#1e40af', textAlign: 'center' }}>
+              <div style={{ padding: '40px', backgroundColor: '#eff6ff', borderRadius: '20px', fontSize: 32, fontWeight: 'bold', color: '#1e40af', textAlign: 'center' }}>
                 📱 Scan QR/NFC
               </div>
-              <div style={{ padding: '30px', backgroundColor: '#eff6ff', borderRadius: '16px', fontSize: 28, fontWeight: 'bold', color: '#1e40af', textAlign: 'center' }}>
+              <div style={{ padding: '40px', backgroundColor: '#eff6ff', borderRadius: '20px', fontSize: 32, fontWeight: 'bold', color: '#1e40af', textAlign: 'center' }}>
                 🏆 Leaderboard
               </div>
             </div>

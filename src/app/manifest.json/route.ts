@@ -4,36 +4,36 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proof-of-meeting.vercel.app';
-
+  
   // Farcaster/BaseApp miniapp manifest - zgodny z Web App Manifest i wymaganiami miniapp
   const manifest = {
     // Podstawowe informacje o aplikacji (wymagane)
     name: 'Proof of Meeting',
     short_name: 'Proof of Meeting',
     description: 'Verify real-world meetings and build reputation using EAS on Base with NFC support. Connect with others from Farcaster and BaseApp, scan QR codes or NFC tags to verify real-world meetings, and mint on-chain attestations.',
-
+    
     // URL i wyświetlanie (wymagane)
     start_url: '/',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait-primary',
-
+    
     // Kolory (wymagane)
     background_color: '#ffffff',
     theme_color: '#3b82f6',
-
+    
     // Kategoria aplikacji (opcjonalne, ale zalecane)
     categories: ['social', 'productivity', 'utilities'],
-
+    
     // Lang (wymagane dla niektórych platform)
     lang: 'en',
-
+    
     // Dir (kierunek tekstu)
     dir: 'ltr',
-
+    
     // Prefer related applications (opcjonalne)
     prefer_related_applications: false,
-
+    
     // Ikony w różnych rozmiarach (wymagane dla PWA i miniapp)
     icons: [
       {
@@ -121,7 +121,7 @@ export async function GET() {
         purpose: 'any',
       },
     ],
-
+    
     // Screenshots (opcjonalne, ale zalecane dla miniapp)
     screenshots: [
       {
@@ -132,8 +132,8 @@ export async function GET() {
         label: 'Proof of Meeting - Main Screen',
       },
     ],
-
-    // Shortcuts (szybkie akcje dla miniapp)
+    
+    // Shortcuts (szybkie akcje dla miniapp - opcjonalne, ale zalecane)
     shortcuts: [
       {
         name: 'My Profile',
