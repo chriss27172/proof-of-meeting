@@ -1,14 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { parseEther } from 'viem';
 import { base } from 'viem/chains';
-
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
+import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
 
 const CREATOR_WALLET = '0xC7C23F3f7DA06d0950538B7591e40A41d98841ed' as `0x${string}`;
 const CREATOR_NAME = 'music-guy.eth';
@@ -23,6 +18,15 @@ export default function BuyMeCoffee({ className = '' }: BuyMeCoffeeProps) {
   const [customAmount, setCustomAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const { address, walletClient, isFarcasterWallet, loading: walletLoading, connectWallet } = useFarcasterWallet();
+
+  useEffect(() => {
+    // Automatycznie połącz portfel jeśli jest dostępny w Farcaster miniapp
+    if (isFarcasterWallet && !address && !walletLoading) {
+      connectWallet();
+    }
+  }, [isFarcasterWallet, address, walletLoading, connectWallet]);
 
   const handleDonate = async () => {
     try {
@@ -43,9 +47,28 @@ export default function BuyMeCoffee({ className = '' }: BuyMeCoffeeProps) {
         amount = parseEther(selectedAmount);
       }
 
-      // Check if wallet is available
+      // Użyj portfela Farcaster jeśli dostępny, w przeciwnym razie użyj window.ethereum
+      if (walletClient && address) {
+        // Użyj wallet client z Farcaster
+        const hash = await walletClient.sendTransaction({
+          to: CREATOR_WALLET,
+          value: amount,
+        });
+
+        // Success!
+        setShowModal(false);
+        alert(`Thank you! Transaction sent: ${hash}\n\nView on BaseScan: https://basescan.org/tx/${hash}`);
+        
+        // Reset form
+        setSelectedAmount('0.001');
+        setCustomAmount('');
+        setIsProcessing(false);
+        return;
+      }
+
+      // Fallback do window.ethereum
       if (!window.ethereum) {
-        setError('Please install a wallet (MetaMask, Coinbase Wallet, etc.)');
+        setError('Please connect your wallet first');
         setIsProcessing(false);
         return;
       }
@@ -217,16 +240,35 @@ export default function BuyMeCoffee({ className = '' }: BuyMeCoffeeProps) {
                 </p>
               </div>
 
+              {!address && (
+                <button
+                  onClick={connectWallet}
+                  disabled={walletLoading}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition mb-4"
+                >
+                  {walletLoading ? 'Connecting...' : isFarcasterWallet ? 'Use Farcaster Wallet' : 'Connect Wallet'}
+                </button>
+              )}
+
+              {address && (
+                <div className="bg-green-50 dark:bg-green-900 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <strong>Wallet:</strong> {address.slice(0, 6)}...{address.slice(-4)}
+                    {isFarcasterWallet && <span className="ml-2 text-xs">(Farcaster)</span>}
+                  </p>
+                </div>
+              )}
+
               <button
                 onClick={handleDonate}
-                disabled={isProcessing || (selectedAmount === 'custom' && !customAmount)}
+                disabled={isProcessing || !address || (selectedAmount === 'custom' && !customAmount)}
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition"
               >
                 {isProcessing ? 'Processing...' : `Send ${getAmountDisplay()} ETH`}
               </button>
 
               <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
-                You'll be redirected to your wallet to confirm the transaction
+                {address ? 'You\'ll be asked to confirm the transaction' : 'Please connect your wallet first'}
               </p>
             </div>
           </div>

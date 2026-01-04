@@ -2,16 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createWalletClient, custom, parseAbiParameters, encodeAbiParameters } from 'viem';
+import { parseAbiParameters, encodeAbiParameters } from 'viem';
 import { base } from 'viem/chains';
 import { createPublicClient, http } from 'viem';
 import { EAS_CONTRACT_ADDRESS } from '@/lib/eas';
-
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
+import { useFarcasterWallet } from '@/hooks/useFarcasterWallet';
 
 // EAS ABI
 const EAS_ABI = [
@@ -61,13 +56,22 @@ export default function MintPage() {
   const [minting, setMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  
+  // Use Farcaster wallet hook
+  const { address: walletAddress, walletClient, isFarcasterWallet, loading: walletLoading, connectWallet } = useFarcasterWallet();
 
   // Create public client for Base
   const publicClient = createPublicClient({
     chain: base,
     transport: http('https://mainnet.base.org'),
   });
+
+  useEffect(() => {
+    // Automatycznie połącz portfel jeśli jest dostępny w Farcaster miniapp
+    if (isFarcasterWallet && !walletAddress && !walletLoading) {
+      connectWallet();
+    }
+  }, [isFarcasterWallet, walletAddress, walletLoading, connectWallet]);
 
   useEffect(() => {
     fetchMeeting();
@@ -86,70 +90,11 @@ export default function MintPage() {
     }
   };
 
-  const connectWallet = async () => {
+  // connectWallet jest teraz w hooku useFarcasterWallet
+  const handleConnectWallet = async () => {
     try {
-      // Check if we're in Farcaster miniapp context
-      const isFarcasterMiniApp = typeof window !== 'undefined' &&
-        (window as any).farcaster ||
-        (typeof window !== 'undefined' && (window as any).parent !== window && (window as any).parent.farcaster);
-
-      if (isFarcasterMiniApp) {
-        // Use Farcaster integrated wallet
-        try {
-          const { sdk } = await import('@farcaster/miniapp-sdk');
-
-          // Check if wallet actions are available in Farcaster SDK
-          console.log('Detected Farcaster miniapp context');
-
-          // For now, inform user about wallet requirement
-          // TODO: Implement full Farcaster wallet integration when SDK supports it
-          setError('To mint attestations, please use this app in a regular browser with MetaMask or Coinbase Wallet. Farcaster wallet integration is coming soon.');
-          return;
-        } catch (farcasterError) {
-          console.log('Farcaster wallet not available:', farcasterError);
-          setError('Farcaster wallet not available. Please use a regular wallet like MetaMask.');
-          return;
-        }
-      }
-
-      // Fallback to external wallet (MetaMask, etc.)
-      if (!window.ethereum) {
-        setError('Please install a wallet (MetaMask, Coinbase Wallet, etc.)');
-        return;
-      }
-
-      // Request account access
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      setWalletAddress(accounts[0]);
-
-      // Switch to Base network
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: `0x${base.id.toString(16)}` }],
-        });
-      } catch (switchError: any) {
-        if (switchError.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId: `0x${base.id.toString(16)}`,
-                chainName: 'Base',
-                nativeCurrency: {
-                  name: 'Ethereum',
-                  symbol: 'ETH',
-                  decimals: 18,
-                },
-                rpcUrls: ['https://mainnet.base.org'],
-                blockExplorerUrls: ['https://basescan.org'],
-              },
-            ],
-          });
-        }
-      }
+      await connectWallet();
     } catch (err: any) {
-      console.error('Wallet connection error:', err);
       setError(err.message || 'Failed to connect wallet');
     }
   };
@@ -170,17 +115,17 @@ export default function MintPage() {
         throw new Error('EAS_SCHEMA_UID not configured');
       }
 
-      // Create wallet client
-      const walletClient = createWalletClient({
-        chain: base,
-        transport: custom(window.ethereum),
-      });
+      // Użyj wallet client z hooka
+      if (!walletClient) {
+        throw new Error('Wallet not connected. Please connect your wallet first.');
+      }
 
-      // Get accounts
-      const [account] = await walletClient.getAddresses();
-      if (!account) {
+      // Get account from wallet client
+      const accounts = await walletClient.getAddresses();
+      if (!accounts || accounts.length === 0) {
         throw new Error('No account found');
       }
+      const account = accounts[0];
 
       // Prepare attestation data
       const attestationData = {
@@ -369,10 +314,11 @@ export default function MintPage() {
                 Connect your wallet to mint the EAS attestation on Base network
               </p>
               <button
-                onClick={connectWallet}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition"
+                onClick={handleConnectWallet}
+                disabled={walletLoading}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition"
               >
-                Connect Wallet
+                {walletLoading ? 'Connecting...' : isFarcasterWallet ? 'Use Farcaster Wallet' : 'Connect Wallet'}
               </button>
             </div>
           ) : (
@@ -380,6 +326,7 @@ export default function MintPage() {
               <div className="bg-green-50 dark:bg-green-900 rounded-lg p-4 mb-6">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   <strong>Connected:</strong> {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                  {isFarcasterWallet && <span className="ml-2 text-xs">(Farcaster)</span>}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                   Network: Base
