@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const fid = frameData.message.fid;
+    const fid = frameData.message.interactor.fid;
     const buttonIndex = frameData.message.button;
     
     // Try to get username from frame data (if available)
