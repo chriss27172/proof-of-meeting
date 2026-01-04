@@ -13,19 +13,26 @@ export default function FarcasterSDK() {
       try {
         // Dynamically import SDK to avoid SSR issues
         const { sdk } = await import('@farcaster/miniapp-sdk');
-        
+
+        console.log('FarcasterSDK: Initializing SDK...');
+
         // Call ready() after app is fully loaded
         // This hides the splash screen and displays the app content
         await sdk.actions.ready();
-        
-        console.log('Farcaster SDK ready - splash screen hidden');
+
+        console.log('FarcasterSDK: SDK ready - splash screen hidden');
+
+        // Dispatch custom event to notify other components that SDK is ready
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('farcaster-sdk-ready'));
+        }
       } catch (error) {
         // SDK might not be available if not running in Farcaster miniapp context
         // This is fine - the app will still work in regular browsers
         if (error instanceof Error && error.message.includes('farcaster')) {
-          console.log('Farcaster SDK not available (running outside Farcaster context)');
+          console.log('FarcasterSDK: SDK not available (running outside Farcaster context)');
         } else {
-          console.error('Error initializing Farcaster SDK:', error);
+          console.error('FarcasterSDK: Error initializing SDK:', error);
         }
       }
     };
