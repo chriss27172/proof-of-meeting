@@ -41,7 +41,7 @@ export async function GET() {
         `${baseUrl}/api/og/screenshots/home`, // Home screen
         `${baseUrl}/api/og/screenshots/profile`, // Profile screen
         `${baseUrl}/api/og/screenshots/scan`, // QR/NFC scan screen
-        `${baseUrl}/api/og/screenshots/leaderboard`, // Leaderboard screen
+        // Max 3 screenshots - wymagane rozmiary: 1284x2778 (portrait)
       ],
     },
   };
