@@ -36,7 +36,7 @@ export async function GET() {
       ogDescription: 'Verify real-world meetings and build reputation using EAS on Base with NFC support',
       ogImageUrl: `${baseUrl}/api/og/miniapp`, // Używamy tego samego obrazka co imageUrl dla spójności
       requiredChains: ['eip155:8453'], // Base Mainnet
-      requiredCapabilities: ['actions.ready', 'actions.signIn', 'actions.connectWallet', 'actions.authenticate'],
+      requiredCapabilities: ['actions.ready'],
       screenshotUrls: [
         `${baseUrl}/api/og/screenshots/home`, // Home screen
         `${baseUrl}/api/og/screenshots/profile`, // Profile screen

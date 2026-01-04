@@ -10,6 +10,7 @@ export interface FarcasterUser {
 
 /**
  * Hook do pobierania danych użytkownika z Farcaster MiniApp SDK
+ * W miniapp kontekście użytkownik już jest zalogowany, więc nie potrzebujemy signIn
  */
 export function useFarcasterUser() {
   const [user, setUser] = useState<FarcasterUser | null>(null);
@@ -32,102 +33,56 @@ export function useFarcasterUser() {
           // Listen for SDK ready event
           window.addEventListener('farcaster-sdk-ready', () => resolve(void 0), { once: true });
 
-          // Fallback timeout
-          setTimeout(() => resolve(void 0), 2000);
+          // Fallback timeout - miniapp context może być dostępny od razu
+          setTimeout(() => resolve(void 0), 1000);
 
           checkReady();
         });
       }
+
       try {
         // Dynamically import SDK to avoid SSR issues
         const { sdk } = await import('@farcaster/miniapp-sdk');
 
-        console.log('Farcaster SDK loaded, attempting to get user data...');
+        console.log('Farcaster SDK loaded, checking user context...');
 
-        // First, try to get user from context
-        let context = sdk.context;
-        console.log('Initial context:', context);
+        // W Farcaster miniapp użytkownik już jest zalogowany
+        // Powinniśmy móc pobrać jego dane bezpośrednio z kontekstu
+        let attempts = 0;
+        const maxAttempts = 20;
 
-        if (context?.user) {
-          console.log('User found immediately:', context.user);
-          setUser({
-            fid: context.user.fid,
-            username: context.user.username,
-            displayName: context.user.displayName,
-          });
-          setLoading(false);
-          return;
-        }
+        const checkContext = () => {
+          attempts++;
+          const context = sdk.context;
+          console.log(`Context check ${attempts}:`, context);
 
-        // If no user, try sign in
-        console.log('No user found, attempting sign in...');
-        try {
-          await sdk.actions.signIn();
-          console.log('Sign in action completed');
+          if (context?.user) {
+            console.log('User found in Farcaster context:', context.user);
+            setUser({
+              fid: context.user.fid,
+              username: context.user.username,
+              displayName: context.user.displayName,
+            });
+            setLoading(false);
+          } else if (attempts < maxAttempts) {
+            // Kontynuuj sprawdzanie kontekstu
+            setTimeout(checkContext, 200);
+          } else {
+            console.log('No user found in Farcaster context after all attempts');
+            // W miniapp kontekście zawsze powinniśmy mieć dostęp do użytkownika
+            // Jeśli nie mamy, to znaczy że coś jest nie tak z SDK lub kontekstem
+            setError('Unable to access Farcaster user data. Please make sure you\'re using the app from Farcaster.');
+            setUser(null);
+            setLoading(false);
+          }
+        };
 
-          // Wait for context to update
-          let attempts = 0;
-          const maxAttempts = 15;
+        // Rozpocznij sprawdzanie kontekstu
+        checkContext();
 
-          const waitForUser = () => {
-            attempts++;
-            context = sdk.context;
-            console.log(`Sign in attempt ${attempts}, context:`, context);
-
-            if (context?.user) {
-              console.log('User found after sign in:', context.user);
-              setUser({
-                fid: context.user.fid,
-                username: context.user.username,
-                displayName: context.user.displayName,
-              });
-              setLoading(false);
-            } else if (attempts < maxAttempts) {
-              setTimeout(waitForUser, 300);
-            } else {
-              console.log('User not found after sign in attempts');
-              setError('Please complete sign in to continue');
-              setUser(null);
-              setLoading(false);
-            }
-          };
-
-          setTimeout(waitForUser, 500);
-        } catch (signInError) {
-          console.log('Sign in not available or failed:', signInError);
-
-          // Fallback: just wait for context to be available
-          let attempts = 0;
-          const maxAttempts = 20;
-
-          const waitForContext = () => {
-            attempts++;
-            context = sdk.context;
-            console.log(`Context check ${attempts}:`, context);
-
-            if (context?.user) {
-              console.log('User found in context:', context.user);
-              setUser({
-                fid: context.user.fid,
-                username: context.user.username,
-                displayName: context.user.displayName,
-              });
-              setLoading(false);
-            } else if (attempts < maxAttempts) {
-              setTimeout(waitForContext, 200);
-            } else {
-              console.log('Context not available after all attempts');
-              setError('Unable to access Farcaster user data. Please try refreshing the page.');
-              setUser(null);
-              setLoading(false);
-            }
-          };
-
-          setTimeout(waitForContext, 200);
-        }
       } catch (err) {
         console.error('Farcaster SDK initialization error:', err);
-        setError('Farcaster SDK not available');
+        setError('Farcaster SDK not available. Please make sure you\'re using the app from Farcaster.');
         setUser(null);
         setLoading(false);
       }
