@@ -16,11 +16,31 @@ export default function FarcasterSDK() {
 
         console.log('FarcasterSDK: Initializing SDK...');
 
+        // Wait for DOM to be fully loaded
+        if (document.readyState === 'loading') {
+          await new Promise(resolve => {
+            document.addEventListener('DOMContentLoaded', resolve);
+          });
+        }
+
+        // Additional delay for React hydration to complete
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         // Call ready() after app is fully loaded
         // This hides the splash screen and displays the app content
-        await sdk.actions.ready();
-
-        console.log('FarcasterSDK: SDK ready - splash screen hidden');
+        // Zgodnie z dokumentacją: https://miniapps.farcaster.xyz/docs/getting-started
+        try {
+          await Promise.race([
+            sdk.actions.ready(),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('ready() timeout')), 5000)
+            )
+          ]);
+          console.log('FarcasterSDK: SDK ready - splash screen hidden');
+        } catch (readyError: any) {
+          console.error('FarcasterSDK: Error calling ready():', readyError);
+          // Aplikacja powinna działać nawet jeśli ready() się nie powiedzie
+        }
 
         // Dispatch custom event to notify other components that SDK is ready
         if (typeof window !== 'undefined') {

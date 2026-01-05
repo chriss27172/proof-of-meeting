@@ -48,15 +48,9 @@ export function useFarcasterUser() {
         console.log('SDK object:', sdk);
         console.log('SDK actions:', sdk.actions);
         
-        // Upewnij się, że SDK jest gotowe przed sprawdzaniem kontekstu
-        try {
-          if (sdk.actions && sdk.actions.ready) {
-            await sdk.actions.ready();
-            console.log('✅ SDK ready() called successfully');
-          }
-        } catch (readyError) {
-          console.log('⚠️ SDK ready() not available or failed (this is OK if not in miniapp):', readyError);
-        }
+        // NOTE: sdk.actions.ready() jest już wywoływane w FarcasterSDK.tsx
+        // Nie wywołujemy go tutaj, aby uniknąć duplikacji
+        // Zgodnie z dokumentacją: https://miniapps.farcaster.xyz/docs/getting-started
 
         console.log('🔍 Checking user context...');
         // sdk.context jest Promise, więc nie możemy go bezpośrednio logować

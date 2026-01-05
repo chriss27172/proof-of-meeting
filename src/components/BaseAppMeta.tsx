@@ -60,36 +60,42 @@ export default function BaseAppMeta() {
   // This ensures the tag is in the HTML <head> even before JavaScript executes
   // This is critical for Base App verification which may check the tag early
   return (
-    <script
-      dangerouslySetInnerHTML={{
-        __html: `
-          (function() {
-            if (typeof document !== 'undefined' && document.head) {
-              const appId = '${APP_ID}';
-              // Check if meta tag already exists
-              let meta = document.querySelector('meta[name="base:app_id"]');
-              if (!meta) {
-                // Create and add meta tag to head
-                meta = document.createElement('meta');
-                meta.setAttribute('name', 'base:app_id');
-                meta.setAttribute('content', appId);
-                // Insert at the beginning of head for earliest possible detection
-                if (document.head.firstChild) {
-                  document.head.insertBefore(meta, document.head.firstChild);
+    <>
+      {/* Preconnect to Quick Auth Server for better performance */}
+      {/* Zgodnie z dokumentacją: https://miniapps.farcaster.xyz/docs/sdk/quick-auth#optimizing-performance */}
+      <link rel="preconnect" href="https://auth.farcaster.xyz" />
+      
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              if (typeof document !== 'undefined' && document.head) {
+                const appId = '${APP_ID}';
+                // Check if meta tag already exists
+                let meta = document.querySelector('meta[name="base:app_id"]');
+                if (!meta) {
+                  // Create and add meta tag to head
+                  meta = document.createElement('meta');
+                  meta.setAttribute('name', 'base:app_id');
+                  meta.setAttribute('content', appId);
+                  // Insert at the beginning of head for earliest possible detection
+                  if (document.head.firstChild) {
+                    document.head.insertBefore(meta, document.head.firstChild);
+                  } else {
+                    document.head.appendChild(meta);
+                  }
+                  console.log('✅ base:app_id meta tag added to <head> via inline script');
                 } else {
-                  document.head.appendChild(meta);
+                  // Update content if tag exists
+                  meta.setAttribute('content', appId);
+                  console.log('✅ base:app_id meta tag already exists in <head>, content updated');
                 }
-                console.log('✅ base:app_id meta tag added to <head> via inline script');
-              } else {
-                // Update content if tag exists
-                meta.setAttribute('content', appId);
-                console.log('✅ base:app_id meta tag already exists in <head>, content updated');
               }
-            }
-          })();
-        `,
-      }}
-    />
+            })();
+          `,
+        }}
+      />
+    </>
   );
 }
 
