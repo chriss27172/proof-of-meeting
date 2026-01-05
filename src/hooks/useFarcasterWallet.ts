@@ -8,19 +8,24 @@ export interface FarcasterWallet {
   address: string;
   walletClient: WalletClient | null;
   isFarcasterWallet: boolean;
+  isInMiniApp: boolean;
+  hasEthereumWallet: boolean;
   loading: boolean;
   error: string | null;
 }
 
 /**
  * Hook do wykrywania i używania portfela Farcaster w miniapp
- * W miniapp kontekście portfel jest już dostępny przez SDK
+ * Zgodnie z dokumentacją: https://miniapps.farcaster.xyz/docs/guides/wallets
+ * Portfel implementuje EIP-1193: https://eips.ethereum.org/EIPS/eip-1193
  */
 export function useFarcasterWallet() {
   const [wallet, setWallet] = useState<FarcasterWallet>({
     address: '',
     walletClient: null,
     isFarcasterWallet: false,
+    isInMiniApp: false,
+    hasEthereumWallet: false,
     loading: true,
     error: null,
   });
@@ -28,139 +33,143 @@ export function useFarcasterWallet() {
   useEffect(() => {
     const detectWallet = async () => {
       try {
-        // Sprawdź czy jesteśmy w Farcaster miniapp
+        // Import SDK
         const { sdk } = await import('@farcaster/miniapp-sdk');
         
-        console.log('Farcaster SDK loaded, checking wallet...');
+        console.log('🔍 Checking Farcaster Mini App capabilities...');
         
-        // W Farcaster miniapp portfel jest dostępny przez SDK
-        // Sprawdź czy SDK ma dostęp do portfela
-        const context = sdk.context;
-        console.log('Farcaster context:', context);
+        // Sprawdź czy jesteśmy w Mini App
+        // https://miniapps.farcaster.xyz/docs/sdk/is-in-mini-app
+        const isInMiniApp = await sdk.isInMiniApp();
+        console.log('📍 Is in Mini App:', isInMiniApp);
         
-        // Sprawdź różne możliwe ścieżki do portfela w SDK
-        // Portfel może być w: context.wallet, context.user.walletAddress, lub przez sdk.actions
-        let walletAddress: string | null = null;
-        
-        if (context?.wallet?.address) {
-          walletAddress = context.wallet.address;
-        } else if ((context as any)?.walletAddress) {
-          walletAddress = (context as any).walletAddress;
-        } else if (context?.user?.walletAddress) {
-          walletAddress = context.user.walletAddress;
-        } else if ((context as any)?.user?.wallet?.address) {
-          walletAddress = (context as any).user.wallet.address;
+        if (!isInMiniApp) {
+          // Nie jesteśmy w Mini App, użyj fallback do window.ethereum
+          console.log('⚠️ Not in Mini App, using window.ethereum fallback');
+          await detectExternalWallet();
+          return;
         }
-        
-        if (walletAddress) {
-          console.log('Farcaster wallet found:', walletAddress);
-          
-          // Utwórz wallet client używając Farcaster SDK
-          // W Farcaster miniapp możemy użyć custom transport z SDK
-          const walletClient = createWalletClient({
-            chain: base,
-            transport: custom({
-              request: async ({ method, params }) => {
-                // Użyj SDK do wykonywania transakcji
-                if (method === 'eth_sendTransaction') {
-                  // Farcaster SDK może mieć metodę do wysyłania transakcji
-                  // Sprawdź czy SDK ma metodę sendTransaction
-                  if ((sdk.actions as any).sendTransaction) {
-                    const result = await (sdk.actions as any).sendTransaction(params[0]);
-                    return result;
-                  }
-                  // Jeśli nie, użyj window.ethereum jeśli dostępny
-                  if (typeof window !== 'undefined' && (window as any).ethereum) {
-                    return (window as any).ethereum.request({ method, params });
-                  }
-                  throw new Error('Transaction method not available');
-                }
-                // Dla innych metod, użyj standardowego providera jeśli dostępny
-                if (typeof window !== 'undefined' && (window as any).ethereum) {
-                  return (window as any).ethereum.request({ method, params });
-                }
-                throw new Error(`Method ${method} not supported`);
-              },
-            }),
-          });
 
+        // Sprawdź capabilities - czy portfel Ethereum jest dostępny
+        // https://miniapps.farcaster.xyz/docs/sdk/detecting-capabilities
+        const capabilities = await sdk.getCapabilities();
+        console.log('🔧 Capabilities:', capabilities);
+        
+        // Sprawdź czy portfel Ethereum jest dostępny
+        // Capabilities może mieć różną strukturę, sprawdzamy różne możliwości
+        const hasEthereumWallet = 
+          (capabilities as any)?.ethereum?.available || 
+          (capabilities as any)?.wallet?.ethereum ||
+          capabilities?.includes?.('wallet.getEthereumProvider') ||
+          false;
+        console.log('💼 Has Ethereum wallet:', hasEthereumWallet);
+        
+        if (!hasEthereumWallet) {
           setWallet({
-            address: walletAddress,
-            walletClient,
+            address: '',
+            walletClient: null,
+            isFarcasterWallet: false,
+            isInMiniApp: true,
+            hasEthereumWallet: false,
+            loading: false,
+            error: 'Ethereum wallet not available in this Mini App',
+          });
+          return;
+        }
+
+        // Portfel Ethereum jest dostępny przez sdk.wallet.getEthereumProvider()
+        // Zgodnie z dokumentacją: https://miniapps.farcaster.xyz/docs/guides/wallets
+        // Portfel implementuje EIP-1193, więc możemy użyć go jako standardowego providera
+        const ethereumProvider = await sdk.wallet.getEthereumProvider();
+        
+        if (!ethereumProvider) {
+          throw new Error('Ethereum provider not available');
+        }
+
+        // Pobierz adres portfela
+        const accounts = await ethereumProvider.request({ method: 'eth_accounts' });
+        
+        if (!accounts || accounts.length === 0) {
+          // Portfel nie jest połączony, ale jest dostępny
+          setWallet({
+            address: '',
+            walletClient: null,
             isFarcasterWallet: true,
+            isInMiniApp: true,
+            hasEthereumWallet: true,
             loading: false,
             error: null,
           });
           return;
         }
 
-        // Jeśli nie ma portfela w SDK, sprawdź czy jest window.ethereum (fallback)
-        if (typeof window !== 'undefined' && window.ethereum) {
-          console.log('Using window.ethereum as fallback');
+        const walletAddress = accounts[0] as string;
+        console.log('✅ Farcaster wallet address:', walletAddress);
+
+        // Utwórz wallet client używając EIP-1193 providera z Farcaster SDK
+        // ethereumProvider implementuje EIP-1193, więc możemy użyć go bezpośrednio
+        const walletClient = createWalletClient({
+          chain: base,
+          transport: custom(ethereumProvider),
+        });
+
+        setWallet({
+          address: walletAddress,
+          walletClient,
+          isFarcasterWallet: true,
+          isInMiniApp: true,
+          hasEthereumWallet: true,
+          loading: false,
+          error: null,
+        });
+      } catch (err) {
+        console.error('❌ Error detecting Farcaster wallet:', err);
+        
+        // Fallback do window.ethereum
+        await detectExternalWallet();
+      }
+    };
+
+    const detectExternalWallet = async () => {
+      // Fallback do window.ethereum (MetaMask, Coinbase Wallet, etc.)
+      if (typeof window !== 'undefined' && (window as any).ethereum) {
+        try {
+          console.log('🔄 Using window.ethereum as fallback');
           
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' });
           
           if (accounts && accounts.length > 0) {
             const walletClient = createWalletClient({
               chain: base,
-              transport: custom(window.ethereum),
+              transport: custom((window as any).ethereum),
             });
 
             setWallet({
               address: accounts[0],
               walletClient,
               isFarcasterWallet: false,
+              isInMiniApp: false,
+              hasEthereumWallet: true,
               loading: false,
               error: null,
             });
             return;
           }
+        } catch (fallbackErr) {
+          console.error('❌ Fallback wallet error:', fallbackErr);
         }
-
-        // Brak portfela
-        setWallet({
-          address: '',
-          walletClient: null,
-          isFarcasterWallet: false,
-          loading: false,
-          error: null,
-        });
-      } catch (err) {
-        console.error('Error detecting wallet:', err);
-        
-        // Fallback do window.ethereum jeśli SDK nie jest dostępne
-        if (typeof window !== 'undefined' && window.ethereum) {
-          try {
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            
-            if (accounts && accounts.length > 0) {
-              const walletClient = createWalletClient({
-                chain: base,
-                transport: custom(window.ethereum),
-              });
-
-              setWallet({
-                address: accounts[0],
-                walletClient,
-                isFarcasterWallet: false,
-                loading: false,
-                error: null,
-              });
-              return;
-            }
-          } catch (fallbackErr) {
-            console.error('Fallback wallet error:', fallbackErr);
-          }
-        }
-
-        setWallet({
-          address: '',
-          walletClient: null,
-          isFarcasterWallet: false,
-          loading: false,
-          error: 'No wallet available',
-        });
       }
+
+      // Brak portfela
+      setWallet({
+        address: '',
+        walletClient: null,
+        isFarcasterWallet: false,
+        isInMiniApp: false,
+        hasEthereumWallet: false,
+        loading: false,
+        error: null,
+      });
     };
 
     detectWallet();
@@ -170,68 +179,65 @@ export function useFarcasterWallet() {
     try {
       setWallet(prev => ({ ...prev, loading: true, error: null }));
 
-      // Sprawdź czy jesteśmy w Farcaster miniapp
-      try {
-        const { sdk } = await import('@farcaster/miniapp-sdk');
-        const context = sdk.context;
-        console.log('Farcaster context in connectWallet:', context);
+      // Sprawdź czy jesteśmy w Mini App
+      const { sdk } = await import('@farcaster/miniapp-sdk');
+      const isInMiniApp = await sdk.isInMiniApp();
+      
+      if (isInMiniApp) {
+        // W Mini App, użyj Farcaster wallet
+        const capabilities = await sdk.getCapabilities();
+        const hasEthereumWallet = 
+          (capabilities as any)?.ethereum?.available || 
+          (capabilities as any)?.wallet?.ethereum ||
+          capabilities?.includes?.('wallet.getEthereumProvider') ||
+          false;
         
-        // Sprawdź różne możliwe ścieżki do portfela
-        let walletAddress: string | null = null;
-        
-        if (context?.wallet?.address) {
-          walletAddress = context.wallet.address;
-        } else if ((context as any)?.walletAddress) {
-          walletAddress = (context as any).walletAddress;
-        } else if (context?.user?.walletAddress) {
-          walletAddress = context.user.walletAddress;
-        } else if ((context as any)?.user?.wallet?.address) {
-          walletAddress = (context as any).user.wallet.address;
+        if (!hasEthereumWallet) {
+          throw new Error('Ethereum wallet not available in this Mini App');
         }
-        
-        if (walletAddress) {
-          const walletClient = createWalletClient({
-            chain: base,
-            transport: custom({
-              request: async ({ method, params }) => {
-                if (method === 'eth_sendTransaction') {
-                  if ((sdk.actions as any).sendTransaction) {
-                    const result = await (sdk.actions as any).sendTransaction(params[0]);
-                    return result;
-                  }
-                  if (typeof window !== 'undefined' && (window as any).ethereum) {
-                    return (window as any).ethereum.request({ method, params });
-                  }
-                  throw new Error('Transaction method not available');
-                }
-                if (typeof window !== 'undefined' && (window as any).ethereum) {
-                  return (window as any).ethereum.request({ method, params });
-                }
-                throw new Error(`Method ${method} not supported`);
-              },
-            }),
-          });
 
-          setWallet({
-            address: walletAddress,
-            walletClient,
-            isFarcasterWallet: true,
-            loading: false,
-            error: null,
-          });
-          return;
+        const ethereumProvider = await sdk.wallet.getEthereumProvider();
+        
+        if (!ethereumProvider) {
+          throw new Error('Ethereum provider not available');
         }
-      } catch (sdkError) {
-        console.log('Farcaster SDK not available, using fallback:', sdkError);
+
+        // Request account access (EIP-1193)
+        const accounts = await ethereumProvider.request({ 
+          method: 'eth_requestAccounts' 
+        });
+        
+        if (!accounts || accounts.length === 0) {
+          throw new Error('No accounts found');
+        }
+
+        const walletAddress = accounts[0] as string;
+
+        // Utwórz wallet client
+        const walletClient = createWalletClient({
+          chain: base,
+          transport: custom(ethereumProvider),
+        });
+
+        setWallet({
+          address: walletAddress,
+          walletClient,
+          isFarcasterWallet: true,
+          isInMiniApp: true,
+          hasEthereumWallet: true,
+          loading: false,
+          error: null,
+        });
+        return;
       }
 
       // Fallback do window.ethereum
-      if (!window.ethereum) {
+      if (!(window as any).ethereum) {
         throw new Error('Please install a wallet (MetaMask, Coinbase Wallet, etc.)');
       }
 
       // Request account access
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
       
       if (!accounts || accounts.length === 0) {
         throw new Error('No accounts found');
@@ -239,13 +245,13 @@ export function useFarcasterWallet() {
 
       // Switch to Base network
       try {
-        await window.ethereum.request({
+        await (window as any).ethereum.request({
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: `0x${base.id.toString(16)}` }],
         });
       } catch (switchError: any) {
         if (switchError.code === 4902) {
-          await window.ethereum.request({
+          await (window as any).ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [
               {
@@ -266,18 +272,20 @@ export function useFarcasterWallet() {
 
       const walletClient = createWalletClient({
         chain: base,
-        transport: custom(window.ethereum),
+        transport: custom((window as any).ethereum),
       });
 
       setWallet({
         address: accounts[0],
         walletClient,
         isFarcasterWallet: false,
+        isInMiniApp: false,
+        hasEthereumWallet: true,
         loading: false,
         error: null,
       });
     } catch (err: any) {
-      console.error('Wallet connection error:', err);
+      console.error('❌ Wallet connection error:', err);
       setWallet(prev => ({
         ...prev,
         loading: false,
@@ -291,4 +299,3 @@ export function useFarcasterWallet() {
     connectWallet,
   };
 }
-
