@@ -35,10 +35,17 @@ export async function POST(req: NextRequest) {
     const fid = frameData.message.interactor.fid;
     const buttonIndex = frameData.message.button;
     
-    // Try to get username from frame data (if available)
-    // Note: username is not directly available in FrameValidationData
-    // We'll fetch it from database if user exists, or leave it null
-    const username: string | null = null;
+    // Try to get username from existing user in database
+    // Note: Frame API doesn't provide username directly, but we can get it from database
+    // or it will be set when user uses the Mini App (which has access to sdk.context.user.username)
+    let username: string | null = null;
+    const existingUser = await prisma.user.findUnique({
+      where: { fid },
+      select: { username: true },
+    });
+    if (existingUser?.username) {
+      username = existingUser.username;
+    }
 
     // Main menu
     if (!buttonIndex) {

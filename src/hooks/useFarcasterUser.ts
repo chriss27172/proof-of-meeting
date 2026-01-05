@@ -59,109 +59,63 @@ export function useFarcasterUser() {
         }
 
         console.log('🔍 Checking user context...');
-        console.log('SDK context:', sdk.context);
-        console.log('SDK context type:', typeof sdk.context);
-        console.log('SDK context keys:', sdk.context ? Object.keys(sdk.context) : 'null');
+        // sdk.context jest Promise, więc nie możemy go bezpośrednio logować
+        console.log('SDK context type: Promise<MiniAppContext>');
 
         // W Farcaster miniapp użytkownik już jest zalogowany
-        // Powinniśmy móc pobrać jego dane bezpośrednio z kontekstu
+        // Zgodnie z dokumentacją: https://miniapps.farcaster.xyz/docs/sdk/context
+        // Dane użytkownika są dostępne przez sdk.context.user
         let attempts = 0;
-        const maxAttempts = 150; // Zwiększamy liczbę prób
+        const maxAttempts = 100;
 
         const checkContext = async () => {
           attempts++;
           try {
-            const context = sdk.context;
+            // sdk.context jest Promise, więc musimy go awaitować
+            // Zgodnie z dokumentacją: https://miniapps.farcaster.xyz/docs/sdk/context
+            const context = await sdk.context;
             console.log(`🔍 Context check ${attempts}/${maxAttempts}:`, context);
             
             if (context) {
               console.log('📋 Context keys:', Object.keys(context));
-              console.log('📋 Full context:', JSON.stringify(context, null, 2));
             }
 
-            // Sprawdź różne możliwe ścieżki do danych użytkownika
-            // W Farcaster miniapp SDK, użytkownik może być w różnych miejscach
-            const userData = 
-              context?.user || 
-              context?.interactor ||
-              (context as any)?.cast?.author || 
-              (context as any)?.user?.interactor ||
-              (context as any)?.interactor?.user ||
-              (sdk as any).user ||
-              (sdk as any).context?.user ||
-              (sdk as any).context?.interactor;
+            // Zgodnie z dokumentacją Farcaster Mini Apps SDK:
+            // https://miniapps.farcaster.xyz/docs/sdk/context
+            // Użytkownik jest dostępny przez context.user
+            const userData = context?.user;
 
-            console.log('👤 User data found:', userData);
-            console.log('👤 User data type:', typeof userData);
-            if (userData) {
-              console.log('👤 User data keys:', Object.keys(userData));
-            }
-
-            if (userData && (userData.fid || userData.userFid)) {
-              const fid = userData.fid || userData.userFid;
-              console.log('✅ User found in Farcaster context:', { fid, userData });
+            console.log('👤 User data from context.user:', userData);
+            
+            if (userData && userData.fid) {
+              const fid = userData.fid;
+              console.log('✅ User found in Farcaster context:', { 
+                fid, 
+                username: userData.username,
+                displayName: userData.displayName 
+              });
+              
               setUser({
-                fid: typeof fid === 'number' ? fid : parseInt(fid),
-                username: userData.username || userData.userName || undefined,
-                displayName: userData.displayName || userData.display_name || undefined,
+                fid: typeof fid === 'number' ? fid : parseInt(String(fid)),
+                // Username w kontekście jest bez @ zgodnie z dokumentacją
+                username: userData.username || undefined,
+                displayName: userData.displayName || undefined,
               });
               setLoading(false);
               return;
             }
 
-            // Sprawdź czy SDK ma metodę do pobrania użytkownika
-            if ((sdk as any).getUser) {
-              try {
-                console.log('🔍 Trying getUser() method...');
-                const userFromMethod = await (sdk as any).getUser();
-                console.log('👤 User from getUser method:', userFromMethod);
-                if (userFromMethod && (userFromMethod.fid || userFromMethod.userFid)) {
-                  const fid = userFromMethod.fid || userFromMethod.userFid;
-                  setUser({
-                    fid: typeof fid === 'number' ? fid : parseInt(fid),
-                    username: userFromMethod.username || userFromMethod.userName,
-                    displayName: userFromMethod.displayName || userFromMethod.display_name,
-                  });
-                  setLoading(false);
-                  return;
-                }
-              } catch (getUserError) {
-                console.log('⚠️ getUser method not available or failed:', getUserError);
-              }
-            }
-
-            // Sprawdź czy SDK ma metodę actions.getUser
-            if (sdk.actions && (sdk.actions as any).getUser) {
-              try {
-                console.log('🔍 Trying sdk.actions.getUser() method...');
-                const userFromActions = await (sdk.actions as any).getUser();
-                console.log('👤 User from actions.getUser method:', userFromActions);
-                if (userFromActions && (userFromActions.fid || userFromActions.userFid)) {
-                  const fid = userFromActions.fid || userFromActions.userFid;
-                  setUser({
-                    fid: typeof fid === 'number' ? fid : parseInt(fid),
-                    username: userFromActions.username || userFromActions.userName,
-                    displayName: userFromActions.displayName || userFromActions.display_name,
-                  });
-                  setLoading(false);
-                  return;
-                }
-              } catch (getUserError) {
-                console.log('⚠️ actions.getUser method not available or failed:', getUserError);
-              }
-            }
-
-            // Jeśli kontekst istnieje ale nie ma użytkownika, sprawdź czy to miniapp
+            // Jeśli kontekst istnieje ale nie ma użytkownika, poczekaj chwilę
+            // Kontekst może być jeszcze nie w pełni załadowany
             if (context && attempts < maxAttempts) {
               // Kontynuuj sprawdzanie kontekstu
-              setTimeout(() => checkContext(), 50); // Zmniejszamy interwał do 50ms dla szybszego wykrycia
+              setTimeout(() => checkContext(), 100);
             } else if (attempts >= maxAttempts) {
               console.log('❌ No user found in Farcaster context after all attempts');
               console.log('Final context:', context);
-              console.log('SDK actions:', sdk.actions);
-              console.log('SDK methods:', Object.keys(sdk));
-              // W miniapp kontekście zawsze powinniśmy mieć dostęp do użytkownika
-              // Jeśli nie mamy, to znaczy że coś jest nie tak z SDK lub kontekstem
+              console.log('Context.user:', context?.user);
+              // W miniapp kontekście powinniśmy mieć dostęp do użytkownika przez context.user
+              // Jeśli nie mamy, to znaczy że nie jesteśmy w kontekście miniapp
               // Ale nie ustawiamy błędu - pozwalamy aplikacji działać bez użytkownika
               setUser(null);
               setLoading(false);
