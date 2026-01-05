@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeToggle from "@/components/ThemeToggle";
 import FarcasterSDK from "@/components/FarcasterSDK";
 import BaseAppMeta from "@/components/BaseAppMeta";
+import AuthKitProvider from "@/components/AuthKitProvider";
 import { UserProvider } from "@/contexts/UserContext";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -76,11 +77,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <BaseAppMeta />
-        <UserProvider>
-          <FarcasterSDK />
-          <ThemeToggle />
-          {children}
-        </UserProvider>
+        <AuthKitProvider>
+          <UserProvider>
+            <FarcasterSDK />
+            <ThemeToggle />
+            {children}
+          </UserProvider>
+        </AuthKitProvider>
       </body>
     </html>
   );

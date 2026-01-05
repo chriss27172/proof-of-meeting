@@ -65,3 +65,35 @@ export async function fetchNeynarScores(fids: number[]): Promise<Map<number, num
   return scores;
 }
 
+/**
+ * Fetches user data from Neynar by FID
+ * @param fid Farcaster ID
+ * @returns User data (username, displayName) or null if not available
+ */
+export async function fetchNeynarUser(fid: number): Promise<{ username?: string; displayName?: string } | null> {
+  try {
+    const client = getNeynarClient();
+    if (!client) {
+      return null;
+    }
+
+    // Fetch user by FID
+    const response = await client.lookupUserByFid(fid);
+    
+    // Handle different possible response structures
+    const user = response.result?.user || response.user;
+    
+    if (!user) {
+      return null;
+    }
+
+    return {
+      username: user.username || undefined,
+      displayName: user.display_name || user.displayName || undefined,
+    };
+  } catch (error) {
+    console.error(`Error fetching Neynar user data for FID ${fid}:`, error);
+    return null;
+  }
+}
+

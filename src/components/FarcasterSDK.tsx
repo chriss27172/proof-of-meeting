@@ -26,9 +26,45 @@ export default function FarcasterSDK() {
         // Additional delay for React hydration to complete
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Call ready() after app is fully loaded
-        // This hides the splash screen and displays the app content
-        // Zgodnie z dokumentacją: https://miniapps.farcaster.xyz/docs/getting-started
+        // Sprawdź czy jesteśmy w Mini App
+        // Zgodnie z dokumentacją: https://miniapps.farcaster.xyz/docs/sdk/is-in-mini-app
+        const isInMiniApp = await sdk.isInMiniApp();
+        console.log('FarcasterSDK: Is in Mini App:', isInMiniApp);
+
+        if (isInMiniApp) {
+          // W Mini App, sprawdź czy context jest dostępny
+          // Zgodnie z dokumentacją: https://miniapps.farcaster.xyz/docs/sdk/context
+          // Context jest dostępny od razu, ale może potrzebować czasu na inicjalizację
+          try {
+            const context = await sdk.context;
+            console.log('FarcasterSDK: Context available:', {
+              hasUser: !!context?.user,
+              hasFid: !!context?.user?.fid,
+              userFid: context?.user?.fid,
+            });
+
+            // Jeśli użytkownik jest dostępny, dispatch event z informacją
+            if (context?.user?.fid) {
+              window.dispatchEvent(new CustomEvent('farcaster-user-available', {
+                detail: { user: context.user }
+              }));
+            }
+
+            // Poczekaj chwilę na pełną inicjalizację context
+            // To daje czas na pobranie użytkownika przez useFarcasterUser
+            await new Promise(resolve => setTimeout(resolve, 200));
+          } catch (contextError) {
+            console.warn('FarcasterSDK: Context not immediately available:', contextError);
+            // Kontynuuj - context może być dostępny później
+          }
+        }
+
+        // Call ready() after app is fully loaded and user context is checked
+        // Zgodnie z przykładem Quick Auth: ready() powinno być wywoływane PO pobraniu danych
+        // https://miniapps.farcaster.xyz/docs/sdk/quick-auth
+        // Ale zgodnie z dokumentacją Getting Started: ready() ukrywa splash screen
+        // https://miniapps.farcaster.xyz/docs/getting-started
+        // Wywołujemy ready() tutaj, ale użytkownik powinien być już pobrany przez useFarcasterUser
         try {
           await Promise.race([
             sdk.actions.ready(),

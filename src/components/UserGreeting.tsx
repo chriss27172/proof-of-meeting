@@ -1,6 +1,7 @@
 'use client';
 
 import { useUser } from '@/contexts/UserContext';
+import FarcasterSignIn from './FarcasterSignIn';
 
 export default function UserGreeting() {
   const { user, loading, error } = useUser();
@@ -15,11 +16,14 @@ export default function UserGreeting() {
 
   if (error || !user) {
     return (
-      <div className="bg-yellow-50 dark:bg-yellow-900 rounded-lg p-4 mb-8 text-center">
-        <p className="text-yellow-800 dark:text-yellow-200">
-          Welcome to Proof of Meeting! Please use this app in Farcaster or BaseApp to access your profile.
-        </p>
-      </div>
+      <>
+        <FarcasterSignIn />
+        <div className="bg-yellow-50 dark:bg-yellow-900 rounded-lg p-4 mb-8 text-center">
+          <p className="text-yellow-800 dark:text-yellow-200">
+            Welcome to Proof of Meeting! Sign in with Farcaster or use this app in Farcaster/BaseApp Mini App.
+          </p>
+        </div>
+      </>
     );
   }
 
