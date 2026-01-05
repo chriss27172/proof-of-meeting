@@ -28,6 +28,7 @@ model User {
   reputationScore Float   @default(0) // Overall reputation score
   totalMeetings  Int     @default(0) // Total verified meetings
   totalAttestations Int  @default(0) // Total EAS attestations received
+  neynarScore    Float?  // Neynar user quality score (0-1, cached)
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

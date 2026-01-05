@@ -22,6 +22,7 @@ export default async function LeaderboardPage() {
                   <th className="px-6 py-4 text-left">Rank</th>
                   <th className="px-6 py-4 text-left">User</th>
                   <th className="px-6 py-4 text-right">Reputation</th>
+                  <th className="px-6 py-4 text-right">Neynar Score</th>
                   <th className="px-6 py-4 text-right">Meetings</th>
                   <th className="px-6 py-4 text-right">Attestations</th>
                   <th className="px-6 py-4 text-right">Trust Level</th>
@@ -71,6 +72,15 @@ export default async function LeaderboardPage() {
                       <span className="font-bold text-lg">
                         {entry.metrics.reputationScore.toFixed(1)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {entry.metrics.neynarScore !== null && entry.metrics.neynarScore !== undefined ? (
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">
+                          {(entry.metrics.neynarScore * 100).toFixed(1)}%
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 dark:text-gray-500 text-sm">N/A</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       {entry.metrics.totalMeetings}

@@ -136,12 +136,20 @@ export default async function ProfilesPage({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-3 gap-4 mb-4">
                   <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-3">
                     <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
                       {user.metrics.reputationScore.toFixed(1)}
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">Reputation</div>
+                  </div>
+                  <div className="bg-indigo-50 dark:bg-indigo-900 rounded-lg p-3">
+                    <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                      {user.metrics.neynarScore !== null && user.metrics.neynarScore !== undefined 
+                        ? (user.metrics.neynarScore * 100).toFixed(0) + '%'
+                        : 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Neynar</div>
                   </div>
                   <div className="bg-green-50 dark:bg-green-900 rounded-lg p-3">
                     <div className="text-lg font-bold text-green-600 dark:text-green-400">

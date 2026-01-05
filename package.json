@@ -30,7 +30,8 @@
     "react-dom": "^18.3.1",
     "uuid": "^10.0.0",
     "viem": "^2.21.45",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@neynar/nodejs-sdk": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

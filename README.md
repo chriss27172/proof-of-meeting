@@ -84,6 +84,7 @@ A Farcaster Frame v2 miniapp compatible with both **Farcaster** and **BaseAPP** 
 - `DATABASE_URL`: PostgreSQL database connection string
 - `NEXT_PUBLIC_BASE_URL`: Your application's base URL
 - `BASE_RPC_URL`: Base network RPC endpoint (optional, defaults to mainnet)
+- `NEYNAR_API_KEY`: Neynar API key for fetching user quality scores (optional, but recommended for reputation system)
 
 ## API Endpoints
 
@@ -116,9 +117,12 @@ A Farcaster Frame v2 miniapp compatible with both **Farcaster** and **BaseAPP** 
 ## Reputation System
 
 Reputation scores are calculated based on:
-- **40%** - Number of verified meetings (max 50 meetings = 100 points)
-- **30%** - Number of EAS attestations (max 20 attestations = 100 points)
-- **30%** - Average rating from other users (max 5.0 rating = 100 points)
+- **35%** - Number of verified meetings (max 50 meetings = 100 points)
+- **25%** - Number of EAS attestations (max 20 attestations = 100 points)
+- **25%** - Average rating from other users (max 5.0 rating = 100 points)
+- **15%** - Neynar Score (0-1 quality score from Farcaster, with bonus multiplier for higher scores)
+
+The Neynar Score is a quality metric from Neynar that reflects user credibility on Farcaster. Users with higher Neynar Scores receive bonus points in the reputation calculation, making them rank higher on the leaderboard.
 
 Trust levels:
 - **High**: Reputation score ≥ 70, ≥ 5 meetings, average rating ≥ 4.0

@@ -159,12 +159,20 @@ export default async function ProfilePage({
             </div>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6 mt-8">
+          <div className="grid md:grid-cols-5 gap-6 mt-8">
             <div className="bg-blue-50 dark:bg-blue-900 rounded-lg p-4">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {metrics.reputationScore.toFixed(1)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Reputation Score</div>
+            </div>
+            <div className="bg-indigo-50 dark:bg-indigo-900 rounded-lg p-4">
+              <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                {metrics.neynarScore !== null && metrics.neynarScore !== undefined 
+                  ? (metrics.neynarScore * 100).toFixed(1) + '%'
+                  : 'N/A'}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Neynar Score</div>
             </div>
             <div className="bg-green-50 dark:bg-green-900 rounded-lg p-4">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
